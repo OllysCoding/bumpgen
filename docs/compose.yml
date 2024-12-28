@@ -1,0 +1,10 @@
+services:
+  jellyfin:
+    image: ollyscoding/bumpgen
+    container_name: jellyfin
+    restart: 'unless-stopped'
+    volumes:
+      - /config:/opt/
+      - /var/cache/jellyfin:/var/cache/jellyfin
+      - /var/lib/jellyfin:/var/lib/jellyfin
+      - /var/log/jellyfin:/var/log/jellyfin

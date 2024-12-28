@@ -1,0 +1,9 @@
+.DS_Store
+node_modules
+dist
+.env
+bumpgen.config.json
+
+# For local testing
+dev-output
+dev-background-content

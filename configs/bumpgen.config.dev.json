@@ -1,0 +1,7 @@
+{
+  "logLevel": "INFO",
+  "language": "en",
+  "xmlTvUrl": "",
+  "outputFolder": "./dev-output",
+  "backgroundContentFolder": "./dev-background-content"
+}
