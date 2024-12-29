@@ -21,6 +21,12 @@ export interface AppConfig {
   xmlTvUrl: string;
   outputFolder: string;
   backgroundContentFolder: string;
+
+  /**
+   * TODO
+   */
+  // padding: how long to wait after a show has started before generating the next clip
+  // channels: what to generate for each channel by ID, '*' for a default config for all channels.
 }
 
 const schema: JSONSchemaType<AppConfig> = {
