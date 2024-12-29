@@ -29,7 +29,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          dockerfile: ./Containerfile
+          file: ./Containerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ollyscoding/bumpgen-test:latest,ollyscoding/bumpgen-test:${{ steps.package-version.outputs.current-version }}
