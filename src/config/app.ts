@@ -8,7 +8,7 @@ import { exit } from 'node:process';
 const DEFAULT_CONFIG_PATH = './configs/bumpgen.config.json'
 
 const ajv = new Ajv()
-//@ts-expect-error
+//@ts-expect-error -- type is weird but this works
 addFormats(ajv)
 
 export interface AppConfig {
@@ -62,7 +62,7 @@ const getConfig = (): AppConfig => {
       exit(1);
     }
   } catch (err) {
-    logError('Failed to initiliaze: config file cannot be opened at ' + configFilePath);
+    logError('Failed to initiliaze: config file cannot be opened at ' + configFilePath, err);
     exit(1);
   }
 }

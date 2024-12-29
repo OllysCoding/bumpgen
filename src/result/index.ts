@@ -4,10 +4,10 @@ export enum ResultStatus {
   ERROR
 };
 
-export type Failure = { message: string, e?: any };
+export interface Failure { message: string, e?: unknown };
 
-export type SuccessResult<T> = { status: ResultStatus.SUCCESS, result: T };
-export type FailureResult = { status: ResultStatus.ERROR, error: Failure  }
+export interface SuccessResult<T> { status: ResultStatus.SUCCESS, result: T };
+export interface FailureResult{ status: ResultStatus.ERROR, error: Failure  }
 
 export type Result<T> = SuccessResult<T> | FailureResult;
 
@@ -18,7 +18,7 @@ export const success = <T>(result: T): SuccessResult<T> => {
   }
 };
 
-export const failure = (message: string, e?: any): FailureResult => {
+export const failure = (message: string, e?: unknown): FailureResult => {
   return {
     status: ResultStatus.ERROR,
     error: {

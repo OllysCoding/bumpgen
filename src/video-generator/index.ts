@@ -11,7 +11,7 @@ import path from "node:path";
 import { logDebug, logError } from "../logger/index.js";
 import { existsSync } from "node:fs";
 
-export type VideoOverlay = {
+export interface VideoOverlay {
   title: string;
   subtitle?: string;
   episode?: string;
@@ -20,18 +20,18 @@ export type VideoOverlay = {
   start?: Date;
 }
 
-export type ChannelInfo = {
+export interface ChannelInfo {
   id: string,
   name?: string;
 }
 
-export type VideoBackground = {
+export interface VideoBackground {
   filePath: string;
   startSeconds: number;
   endSeconds: number;
 }
 
-export type VideoOptions = {
+export interface VideoOptions {
   channelInfo: ChannelInfo
   overlay: VideoOverlay
   background?: VideoBackground

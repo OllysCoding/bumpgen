@@ -2,7 +2,7 @@
 import 'dotenv/config'
 import './config/load.js'
 
-import { scheduleJob, RecurrenceRule } from 'node-schedule'
+import { scheduleJob } from 'node-schedule'
 
 import main from './jobs/main.js'
 import { appConfig } from './config/app.js'

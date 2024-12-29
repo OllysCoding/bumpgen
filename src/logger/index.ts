@@ -16,20 +16,20 @@ const logLevelMap = {
 
 assert(Array.isArray(logLevelMap[logLevel]), 'Invalid log level configured');
 
-export const log = (level: LogLevel, message: string, ...args: any[]): void => {
+export const log = (level: LogLevel, message: string, ...args: unknown[]): void => {
   if (logLevelMap[logLevel].includes(level)) {
     console.log(`[${(new Date()).toISOString()} - ${level}] ` + message, ...args);
   }
 }
 
-export const logError = (message: string, ...args: any[]): void => {
+export const logError = (message: string, ...args: unknown[]): void => {
   return log(LogLevel.ERROR, message, args)
 }
 
-export const logInfo = (message: string, ...args: any[]): void => {
+export const logInfo = (message: string, ...args: unknown[]): void => {
   return log(LogLevel.INFO, message, args)
 }
 
-export const logDebug = (message: string, ...args: any[]): void => {
+export const logDebug = (message: string, ...args: unknown[]): void => {
   return log(LogLevel.DEBUG, message, args)
 }

@@ -1,5 +1,5 @@
 import { fetchAndParseXmlTv, getNextProgrammeForChannel, getValueForConfiguredLang } from '../xmltv/index.js';
-import { failure, isFailure, isSuccess, success, unwrap, type Result } from '../result/index.js';;
+import { failure, isFailure, isSuccess, unwrap } from '../result/index.js';;
 import { createOverlayConfigFromProgramme, makeVideo } from '../video-generator/index.js';
 import path from 'node:path';
 import { appConfig } from '../config/app.js';

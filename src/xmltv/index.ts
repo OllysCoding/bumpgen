@@ -1,10 +1,8 @@
-import { parseXmltv, type Xmltv, type XmltvChannel, type XmltvEpisodeNumber, type XmltvIcon, type XmltvProgramme } from '@iptv/xmltv';
+import { parseXmltv, type XmltvChannel, type XmltvEpisodeNumber, type XmltvIcon, type XmltvProgramme } from '@iptv/xmltv';
 
 import { logDebug, logError } from '../logger/index.js';
 import { failure, success, type Result } from '../result/index.js';
-import assert, { fail } from 'node:assert';
 import { appConfig } from '../config/app.js';
-
 
 export const fetchAndParseXmlTv = async (path: string): Promise<Result<{
   channels: XmltvChannel[],
@@ -15,14 +13,15 @@ export const fetchAndParseXmlTv = async (path: string): Promise<Result<{
     const body = await response.text();
     const xmlTv = parseXmltv(body);
 
-    if (!xmlTv.channels) {
+    const { channels, programmes } = xmlTv
+    if (!channels) {
       return failure('XMLTV file did not return any channels')
-    } else if (!xmlTv.programmes) {
+    } else if (!programmes) {
       return failure('XMLTV file did not return any programmes')
     } else {
       return success({
-        programmes: xmlTv.programmes!,
-        channels: xmlTv.channels!,
+        programmes,
+        channels,
       })
     }
   } catch (err) {
@@ -62,7 +61,7 @@ export const getOnScreenEpisodeNumber = (arr?: XmltvEpisodeNumber[], fallbackToF
   } else {
     if (fallbackToFirstItemWithNoSystem) {
       const fallback = arr.find((v) => v.system === undefined && v._value !== undefined);
-      if (fallback) return success(fallback._value!);
+      if (fallback && fallback._value) return success(fallback._value);
     }
     return failure('Failed to find on screen episode number')
   }

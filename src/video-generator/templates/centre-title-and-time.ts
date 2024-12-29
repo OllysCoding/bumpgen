@@ -1,7 +1,7 @@
 import type { FabricTemplate } from "./index.js";
 
 export const centreTitleAndTime: FabricTemplate = (overlay, convertX, convertY) => 
-  (fabric, canvas, anim) => {
+  (fabric, canvas) => {
 
     const textGroupObjects: fabric.Object[] = [];
 

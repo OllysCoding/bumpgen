@@ -1,5 +1,4 @@
 import { Readable, Writable } from "stream";
-import { TimelineMax } from "gsap";
 import fabric from "fabric";
 
 type mediaPath = string;
