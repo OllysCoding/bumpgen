@@ -10,7 +10,8 @@
     "tsc": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
-    "prettier": "prettier . --check"
+    "prettier": "prettier . --check",
+    "prettier:fix": "prettier . --write"
   },
   "keywords": [],
   "author": "",
