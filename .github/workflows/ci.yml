@@ -12,7 +12,8 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-      - run: npm install
+      # We don't want to do all the node-gyp stuff
+      - run: npm install --ignore-scripts
       - run: npm run tsc
       - run: npm run lint
       - run: npm run prettier
