@@ -1,36 +1,49 @@
-import { parseXmltv, type XmltvChannel, type XmltvEpisodeNumber, type XmltvIcon, type XmltvProgramme } from '@iptv/xmltv';
+import {
+  parseXmltv,
+  type XmltvChannel,
+  type XmltvEpisodeNumber,
+  type XmltvIcon,
+  type XmltvProgramme,
+} from "@iptv/xmltv";
 
-import { logDebug, logError } from '../logger/index.js';
-import { failure, success, type Result } from '../result/index.js';
-import { appConfig } from '../config/app.js';
+import { logDebug, logError } from "../logger/index.js";
+import { failure, success, type Result } from "../result/index.js";
+import { appConfig } from "../config/app.js";
 
-export const fetchAndParseXmlTv = async (path: string): Promise<Result<{
-  channels: XmltvChannel[],
-  programmes: XmltvProgramme[]
-}>> => {
-  try { 
+export const fetchAndParseXmlTv = async (
+  path: string,
+): Promise<
+  Result<{
+    channels: XmltvChannel[];
+    programmes: XmltvProgramme[];
+  }>
+> => {
+  try {
     const response = await fetch(path);
     const body = await response.text();
     const xmlTv = parseXmltv(body);
 
-    const { channels, programmes } = xmlTv
+    const { channels, programmes } = xmlTv;
     if (!channels) {
-      return failure('XMLTV file did not return any channels')
+      return failure("XMLTV file did not return any channels");
     } else if (!programmes) {
-      return failure('XMLTV file did not return any programmes')
+      return failure("XMLTV file did not return any programmes");
     } else {
       return success({
         programmes,
         channels,
-      })
+      });
     }
   } catch (err) {
-    logError('Failed to fetch & parse XML TV file: ', err);
-    return failure('Filed to fetch & parse XML TV file', err)
+    logError("Failed to fetch & parse XML TV file: ", err);
+    return failure("Filed to fetch & parse XML TV file", err);
   }
-}
+};
 
-export const getNextProgrammeForChannel = (channel: XmltvChannel, programmes: XmltvProgramme[]): Result<XmltvProgramme>  => {
+export const getNextProgrammeForChannel = (
+  channel: XmltvChannel,
+  programmes: XmltvProgramme[],
+): Result<XmltvProgramme> => {
   const forChannel = programmes.filter((p) => p.channel === channel.id);
   const sorted = [...forChannel].sort((a, b) => {
     return a.start.getTime() - b.start.getTime();
@@ -44,14 +57,20 @@ export const getNextProgrammeForChannel = (channel: XmltvChannel, programmes: Xm
   if (current) {
     return success(current);
   } else {
-    logDebug('Failed to find current program for channel ' + channel.id)
-    return failure('Failed to find current programme playing on channel with id ' + channel.id);
+    logDebug("Failed to find current program for channel " + channel.id);
+    return failure(
+      "Failed to find current programme playing on channel with id " +
+        channel.id,
+    );
   }
-}
+};
 
-export const getOnScreenEpisodeNumber = (arr?: XmltvEpisodeNumber[], fallbackToFirstItemWithNoSystem = false): Result<string> => {
+export const getOnScreenEpisodeNumber = (
+  arr?: XmltvEpisodeNumber[],
+  fallbackToFirstItemWithNoSystem = false,
+): Result<string> => {
   if (!arr) {
-    return failure('No episode numbers for programme');
+    return failure("No episode numbers for programme");
   }
 
   const value = arr.find((v) => v.system === "onscreen");
@@ -60,16 +79,21 @@ export const getOnScreenEpisodeNumber = (arr?: XmltvEpisodeNumber[], fallbackToF
     return success(value._value);
   } else {
     if (fallbackToFirstItemWithNoSystem) {
-      const fallback = arr.find((v) => v.system === undefined && v._value !== undefined);
+      const fallback = arr.find(
+        (v) => v.system === undefined && v._value !== undefined,
+      );
       if (fallback && fallback._value) return success(fallback._value);
     }
-    return failure('Failed to find on screen episode number')
+    return failure("Failed to find on screen episode number");
   }
-}
+};
 
-export const getValueForConfiguredLang = <T>(arr: { lang?: string, _value: T }[] | undefined, fallbackToFirstItemWithNoLang = true): Result<T> => {
+export const getValueForConfiguredLang = <T>(
+  arr: { lang?: string; _value: T }[] | undefined,
+  fallbackToFirstItemWithNoLang = true,
+): Result<T> => {
   if (!arr) {
-    return failure('Field is empty');
+    return failure("Field is empty");
   }
 
   const value = arr.find((v) => v.lang === appConfig.language);
@@ -80,18 +104,18 @@ export const getValueForConfiguredLang = <T>(arr: { lang?: string, _value: T }[]
       const fallback = arr.find((v) => v.lang === undefined);
       if (fallback) return success(fallback._value);
     }
-    return failure('Failed to find field for lang', + appConfig.language)
+    return failure("Failed to find field for lang", +appConfig.language);
   }
-} 
+};
 
 export const getBestIcon = (arr?: XmltvIcon[]): Result<string> => {
   if (!arr || !arr[0]) {
-    return failure('No icons available for programme');
+    return failure("No icons available for programme");
   }
 
   if (arr.length === 1) {
     return success(arr[0].src);
   }
 
-  return failure('Multiple icons not yet supported');
-}
+  return failure("Multiple icons not yet supported");
+};

@@ -1,15 +1,15 @@
-import { Ajv, type JSONSchemaType } from 'ajv';
-import addFormats from "ajv-formats"
-import { logError, LogLevel } from '../logger/index.js';
-import { readFileSync } from 'node:fs';
+import { Ajv, type JSONSchemaType } from "ajv";
+import addFormats from "ajv-formats";
+import { logError, LogLevel } from "../logger/index.js";
+import { readFileSync } from "node:fs";
 
-import { exit } from 'node:process';
+import { exit } from "node:process";
 
-const DEFAULT_CONFIG_PATH = './configs/bumpgen.config.json'
+const DEFAULT_CONFIG_PATH = "./configs/bumpgen.config.json";
 
-const ajv = new Ajv()
+const ajv = new Ajv();
 //@ts-expect-error -- type is weird but this works
-addFormats(ajv)
+addFormats(ajv);
 
 export interface AppConfig {
   logLevel: LogLevel;
@@ -33,38 +33,47 @@ const schema: JSONSchemaType<AppConfig> = {
   type: "object",
   properties: {
     logLevel: {
-      type: 'string',
-      enum: Object.values(LogLevel)
+      type: "string",
+      enum: Object.values(LogLevel),
     },
-    language: { type: 'string' },
-    interval: { type: 'number', nullable: true, minimum: 1, maximum: 60},
-    xmlTvUrl: { type: 'string', format: 'uri' },
-    outputFolder: { type: 'string' },
-    backgroundContentFolder: { type: 'string' }
+    language: { type: "string" },
+    interval: { type: "number", nullable: true, minimum: 1, maximum: 60 },
+    xmlTvUrl: { type: "string", format: "uri" },
+    outputFolder: { type: "string" },
+    backgroundContentFolder: { type: "string" },
   },
-  required: ['logLevel', 'language', 'xmlTvUrl', 'outputFolder', 'backgroundContentFolder'],
-  additionalProperties: false
-} 
+  required: [
+    "logLevel",
+    "language",
+    "xmlTvUrl",
+    "outputFolder",
+    "backgroundContentFolder",
+  ],
+  additionalProperties: false,
+};
 
-const validate = ajv.compile(schema)
+const validate = ajv.compile(schema);
 
 const configFilePath = process.env.CONFIG_FILE_PATH || DEFAULT_CONFIG_PATH;
 
 const getConfig = (): AppConfig => {
   try {
-    const value = readFileSync(configFilePath, 'utf-8');
+    const value = readFileSync(configFilePath, "utf-8");
     const parsed = JSON.parse(value);
-  
+
     if (validate(parsed)) {
-      return parsed
+      return parsed;
     } else {
-      logError('Failed to initiliaze: error parsing config', validate.errors);
+      logError("Failed to initiliaze: error parsing config", validate.errors);
       exit(1);
     }
   } catch (err) {
-    logError('Failed to initiliaze: config file cannot be opened at ' + configFilePath, err);
+    logError(
+      "Failed to initiliaze: config file cannot be opened at " + configFilePath,
+      err,
+    );
     exit(1);
   }
-}
+};
 
 export const appConfig: AppConfig = getConfig();

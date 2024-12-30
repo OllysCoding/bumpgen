@@ -2,7 +2,7 @@ services:
   bumpgen:
     image: ollyscoding/bumpgen
     container_name: bumpgen
-    restart: 'unless-stopped'
+    restart: "unless-stopped"
     volumes:
       - /opt/bumpgen:/config
       - /path/to/your/output:/output

@@ -13,4 +13,3 @@ You'll need to update the `/path/to/your/output` and `/path/to/your/background-c
 If you haven't already, create the config directory, then create a file called `bumpgen.config.json` within it, and copy across the contents of [bumpgen.config.example.json](./configs/bumpgen.config.example.json). Then add the URL for your XML TV file, and change any other settings as desired.
 
 You should now be good to go, run `docker compose up -d` to get started!
-

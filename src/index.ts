@@ -1,10 +1,10 @@
 // Load configs
-import 'dotenv/config'
-import './config/load.js'
+import "dotenv/config";
+import "./config/load.js";
 
-import { scheduleJob } from 'node-schedule'
+import { scheduleJob } from "node-schedule";
 
-import main from './jobs/main.js'
-import { appConfig } from './config/app.js'
+import main from "./jobs/main.js";
+import { appConfig } from "./config/app.js";
 
-scheduleJob(`*/${appConfig.interval || 5} * * * *`, main)
+scheduleJob(`*/${appConfig.interval || 5} * * * *`, main);

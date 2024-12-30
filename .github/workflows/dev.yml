@@ -3,7 +3,7 @@ name: dev
 on:
   push:
     branches:
-      - 'main'
+      - "main"
 
 jobs:
   docker:
@@ -39,3 +39,14 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ollyscoding/bumpgen-test:${{ steps.package-version.outputs.current-version }}-${{ env.COMMIT_SHORT_SHA }}
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.issue.number) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: 'Published dev build ollyscoding/bumpgen-test:${{ steps.package-version.outputs.current-version }}-${{ env.COMMIT_SHORT_SHA }}'
+              })
+            }
