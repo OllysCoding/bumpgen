@@ -11,9 +11,16 @@ const ajv = new Ajv();
 //@ts-expect-error -- type is weird but this works
 addFormats(ajv);
 
+type ChannelId = string;
+export interface ChannelConfig {
+  template: "centre-title-and-time",
+  backgroundContent: "*" | string[],
+}
+
 export interface AppConfig {
   logLevel: LogLevel;
   language: string;
+  experimentalPluginsSupport: boolean,
   /**
    * Number of minutes between checks.
    */
@@ -21,12 +28,11 @@ export interface AppConfig {
   xmlTvUrl: string;
   outputFolder: string;
   backgroundContentFolder: string;
-
+  channels: Record<ChannelId, ChannelConfig>;
   /**
    * TODO
    */
   // padding: how long to wait after a show has started before generating the next clip
-  // channels: what to generate for each channel by ID, '*' for a default config for all channels.
 }
 
 const schema: JSONSchemaType<AppConfig> = {
@@ -36,25 +42,45 @@ const schema: JSONSchemaType<AppConfig> = {
       type: "string",
       enum: Object.values(LogLevel),
     },
+    experimentalPluginsSupport: { type: 'boolean' },
     language: { type: "string" },
     interval: { type: "number", nullable: true, minimum: 1, maximum: 60 },
     xmlTvUrl: { type: "string", format: "uri" },
     outputFolder: { type: "string" },
     backgroundContentFolder: { type: "string" },
+    channels: { 
+      type: "object",  
+      additionalProperties: {
+        type: "object",
+        properties: {
+          template: {
+            type: 'string',
+            enum: ['centre-title-and-time']
+          },
+          backgroundContent: {
+            oneOf: [{ type: 'string'}, { type: "array", items: { type: 'string' } }]
+          }
+        },
+        required: ["template", "backgroundContent"]
+      },
+      required: []
+    }
   },
   required: [
     "logLevel",
     "language",
+    "experimentalPluginsSupport",
     "xmlTvUrl",
     "outputFolder",
     "backgroundContentFolder",
+    "channels"
   ],
   additionalProperties: false,
 };
 
 const validate = ajv.compile(schema);
 
-const configFilePath = process.env.CONFIG_FILE_PATH || DEFAULT_CONFIG_PATH;
+export const configFilePath = process.env.CONFIG_FILE_PATH || DEFAULT_CONFIG_PATH;
 
 const getConfig = (): AppConfig => {
   try {

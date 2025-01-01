@@ -1,7 +1,14 @@
 {
   "logLevel": "INFO",
   "language": "en",
+  "experimentalPluginsSupport": false,
   "xmlTvUrl": "",
   "outputFolder": "./dev-output",
-  "backgroundContentFolder": "./dev-background-content"
+  "backgroundContentFolder": "./dev-background-content",
+  "channels": {
+    "*": {
+      "template": "centre-title-and-time",
+      "backgroundContent": "*"
+    }
+  }
 }

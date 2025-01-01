@@ -1,6 +1,6 @@
-import type { FabricTemplate } from "./index.js";
+import { Templates, type FabricTemplate } from "../src/templates/index.js";
 
-export const centreTitleAndTime: FabricTemplate =
+const centreTitleAndTime: FabricTemplate =
   (overlay, convertX, convertY) => (fabric, canvas) => {
     const textGroupObjects: fabric.Object[] = [];
 
@@ -68,3 +68,7 @@ export const centreTitleAndTime: FabricTemplate =
     canvas.add(overlayBackground);
     canvas.add(textGroup);
   };
+
+export default (registerTemplate: typeof Templates.registerTemplate) => {
+  registerTemplate('centre-title-and-time', centreTitleAndTime);
+};

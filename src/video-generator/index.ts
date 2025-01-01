@@ -15,11 +15,11 @@ import {
 import { renderer, encoder } from "../canvas2video/index.js";
 
 import type { EncoderConfig } from "../canvas2video/types.js";
-import { centreTitleAndTime } from "./templates/centre-title-and-time.js";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { logDebug, logError } from "../logger/index.js";
 import { existsSync } from "node:fs";
+import type { FabricTemplate } from "../templates/index.js";
 
 export interface VideoOverlay {
   title: string;
@@ -48,6 +48,7 @@ export interface VideoOptions {
   outputDir: string;
   outputFileName: string;
   length: number;
+  template: FabricTemplate,
 }
 
 const randomInteger = (min: number, max: number) => {
@@ -134,7 +135,7 @@ export const makeVideo = async (
       height,
       fps: 1,
       makeScene: (fabric, canvas, anim, compose) => {
-        centreTitleAndTime(
+        options.template(
           options.overlay,
           (val: number) => val * width,
           (val: number) => val * height,
