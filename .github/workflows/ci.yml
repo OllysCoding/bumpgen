@@ -17,3 +17,4 @@ jobs:
       - run: npm run tsc --workspaces
       - run: npm run lint --workspaces
       - run: npm run prettier --workspaces
+      - run: npm run build --worksapces
