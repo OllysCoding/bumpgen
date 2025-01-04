@@ -5,10 +5,9 @@ import { readFileSync } from "node:fs";
 
 import { exit } from "node:process";
 
-const DEFAULT_CONFIG_PATH = "./configs/bumpgen.config.json";
+const DEFAULT_CONFIG_PATH = "../../configs/bumpgen.config.json";
 
 const ajv = new Ajv();
-//@ts-expect-error -- type is weird but this works
 addFormats(ajv);
 
 type ChannelId = string;

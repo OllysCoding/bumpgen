@@ -1,4 +1,5 @@
 import type { XmltvProgramme } from "@iptv/xmltv";
+import type { FabricTemplate } from "bumpgen-shared/types";
 import {
   failure,
   isFailure,
@@ -19,7 +20,6 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { logDebug, logError } from "../logger/index.js";
 import { existsSync } from "node:fs";
-import type { FabricTemplate } from "../templates/index.js";
 
 export interface VideoOverlay {
   title: string;

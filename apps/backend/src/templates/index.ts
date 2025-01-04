@@ -1,32 +1,10 @@
 import path from "node:path";
 import { logDebug, logError, logInfo } from "../logger/index.js";
 import { failure, success, type Result } from "../result/index.js";
-import type { VideoOverlay } from "../video-generator/index.js";
-import fabric from "fabric";
 import { glob } from "glob";
 
-import { create, createEsmHooks, type NodeLoaderHooksAPI2 } from 'ts-node'
-import { assert } from "node:console";
 import { appConfig, configFilePath } from "../config/app.js";
-
-const tsNode = create();
-const esmHooks = createEsmHooks(tsNode) as NodeLoaderHooksAPI2;
-
-assert(
-  typeof esmHooks.load === 'function', 
-  'Wrong ts-node NodeLoaderHooksApi, are you using the correct node version?'
-);
-
-export type ConverterFunc = (val: number) => number;
-export type FabricTemplate = (
-  overlay: VideoOverlay,
-  convertX: ConverterFunc,
-  convertY: ConverterFunc,
-) => (
-  fabricInstance: typeof fabric.fabric,
-  canvas: fabric.fabric.StaticCanvas,
-  anim: gsap.core.Timeline,
-) => void;
+import type { FabricTemplate } from 'bumpgen-shared/types'
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export abstract class Templates {
@@ -38,19 +16,27 @@ export abstract class Templates {
 
   static registerTemplates = async (): Promise<Result<string[]>> => {
     try {
-      const defaultFiles = await glob('templates/*.ts');
+      const defaultFiles = await glob('../../dist/templates/src/*.js', { absolute: true });
       const pluginFiles = appConfig.experimentalPluginsSupport 
-        ? await glob(path.join(configFilePath, '/plugins/**/plugin.ts'))
+        ? await glob(path.join(configFilePath, '/plugins/**/plugin.js'), { absolute: true })
         : [];
       
       const allFiles = new Set([...defaultFiles, ...pluginFiles]);
       const loadedFiles = new Set<string>();
 
       for (const file of allFiles) {
+        logDebug(`Starting to load file "${file}"`);
         try { 
-          logDebug(`Starting to load file "${file}"`);
           const currentCount = Object.keys(this._templates).length
-          await esmHooks.load(file, { format: 'module' }, esmHooks.load);
+
+          const module = await import(file);
+
+          if (!module || !module.load || typeof module.load !== 'function') {
+            throw new Error('Does not export a "load" function');
+          }
+
+          module.load(Templates.registerTemplate);
+
           const newCount = Object.keys(this._templates).length
           if (newCount >= currentCount) {
             loadedFiles.add(file);
@@ -88,7 +74,3 @@ export abstract class Templates {
     }
   }
 }
-
-// TODO: Import these automagically
-// import './centre-title-and-time.js'
-

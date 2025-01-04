@@ -8,7 +8,6 @@ import {
   createOverlayConfigFromProgramme,
   makeVideo,
 } from "../video-generator/index.js";
-import path from "node:path";
 import { appConfig, type ChannelConfig } from "../config/app.js";
 import type { XmltvChannel, XmltvProgramme } from "@iptv/xmltv";
 import { logDebug, logError, logInfo } from "../logger/index.js";
@@ -24,7 +23,7 @@ const pickRandom = <T>(arr: T[]): T => {
 }
 
 const getBackgroundContentForChannel = async (channelConfig: ChannelConfig): Promise<Result<string>> => {
-  const allAvailableFiles = await glob(`${appConfig.backgroundContentFolder}/*`);
+  const allAvailableFiles = await glob(`${appConfig.backgroundContentFolder}/*`, { absolute: true });
   if (allAvailableFiles.length === 0) {
     return failure('No background content available');
   }
@@ -59,9 +58,9 @@ const channelTask = async (
     return failure("Failed to get overlay config", overlay.error);
   }
 
-  const backgroundContentFilename = await getBackgroundContentForChannel(channelConfig);
-  if (isFailure(backgroundContentFilename)) {
-    return backgroundContentFilename;
+  const backgroundContentPath = await getBackgroundContentForChannel(channelConfig);
+  if (isFailure(backgroundContentPath)) {
+    return backgroundContentPath;
   }
 
   const template = Templates.getTemplateByName(channelConfig.template)
@@ -80,10 +79,7 @@ const channelTask = async (
       name: unwrap(getValueForConfiguredLang(channel.displayName)),
     },
     background: {
-      filePath: path.join(
-        appConfig.backgroundContentFolder,
-        backgroundContentFilename.result,
-      ),
+      filePath: backgroundContentPath.result,
       startSeconds: 10,
       endSeconds: 2711,
     }
