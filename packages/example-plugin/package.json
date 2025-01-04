@@ -2,7 +2,7 @@
   "name": "bumpgen-example-plugin",
   "version": "0.0.1",
   "scripts": {
-    "build": "spack",
+    "build": "rollup --config rollup.config.ts --configPlugin typescript",
     "tsc": "tsc -p tsconfig.json",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
@@ -19,6 +19,9 @@
     "gsap": "^3.12.5"
   },
   "devDependencies": {
-    "@types/fabric": "^5.3.9"
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/fabric": "^5.3.9",
+    "rollup": "^4.29.1",
+    "tslib": "^2.8.1"
   }
 }
