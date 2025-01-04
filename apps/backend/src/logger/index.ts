@@ -27,13 +27,13 @@ export const log = (
 };
 
 export const logError = (message: string, ...args: unknown[]): void => {
-  return log(LogLevel.ERROR, message, args);
+  return log(LogLevel.ERROR, message, ...args);
 };
 
 export const logInfo = (message: string, ...args: unknown[]): void => {
-  return log(LogLevel.INFO, message, args);
+  return log(LogLevel.INFO, message, ...args);
 };
 
 export const logDebug = (message: string, ...args: unknown[]): void => {
-  return log(LogLevel.DEBUG, message, args);
+  return log(LogLevel.DEBUG, message, ...args);
 };

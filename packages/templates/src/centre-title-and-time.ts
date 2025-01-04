@@ -1,4 +1,4 @@
-import type { FabricTemplate } from "./index.js";
+import type { BumpGenPlugin, FabricTemplate } from "bumpgen-shared/types";
 
 export const centreTitleAndTime: FabricTemplate =
   (overlay, convertX, convertY) => (fabric, canvas) => {
@@ -68,3 +68,7 @@ export const centreTitleAndTime: FabricTemplate =
     canvas.add(overlayBackground);
     canvas.add(textGroup);
   };
+
+export const load: BumpGenPlugin = (registerTemplate) => {
+  registerTemplate("centre-title-and-time", centreTitleAndTime);
+};

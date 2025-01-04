@@ -1,0 +1,30 @@
+{
+  "name": "bumpgen-templates",
+  "version": "0.0.1",
+  "exports": {
+    "types": "./src/types.ts"
+  },
+  "scripts": {
+    "build": "swc ./src/ -d ../../dist/templates --config-file .swcrc",
+    "test": "spack",
+    "tsc": "tsc -p tsconfig.json",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "prettier": "prettier . --check",
+    "prettier:fix": "prettier . --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "fabric": "^4.6.0",
+    "gsap": "^3.12.5"
+  },
+  "devDependencies": {
+    "@swc/cli": "^0.5.2",
+    "@swc/core": "^1.10.4",
+    "@types/fabric": "^5.3.9"
+  }
+}
