@@ -27,6 +27,6 @@ RUN ["npm", "install"]
 RUN ["npm", "run", "build", "--workspaces"]
  
 # Run
-WORKDIR usr/src/app/apps/backend
+WORKDIR /usr/src/app/apps/backend
 ENV CONFIG_FILE_PATH=/config/bumpgen.config.json
 CMD ["node", "../../dist/backend/src/index.js"]
