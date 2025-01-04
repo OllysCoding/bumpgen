@@ -17,15 +17,14 @@ RUN apk add --update --no-cache \
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY tsconfig.base.json ./
+COPY ./apps ./apps
+COPY ./packages ./packages
 
-RUN npm install
-
-FROM node:alpine AS app
-
-COPY . .
+RUN ["npm", "install"]
 
 # Build
-RUN npm run build --workspaces
+RUN ["npm", "run", "build", "--workspaces"]
  
 # Run
 ENV CONFIG_FILE_PATH=/config/bumpgen.config.json
