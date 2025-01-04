@@ -3,8 +3,8 @@
   "language": "en",
   "experimentalPluginsSupport": false,
   "xmlTvUrl": "",
-  "outputFolder": "./dev-output",
-  "backgroundContentFolder": "./dev-background-content",
+  "outputFolder": "../../dev-output",
+  "backgroundContentFolder": "../../dev-background-content",
   "channels": {
     "*": {
       "template": "centre-title-and-time",
