@@ -1,4 +1,4 @@
-import type { BumpGenPlugin, FabricTemplate } from 'bumpgen-shared/types';
+import type { BumpGenPlugin, FabricTemplate } from "bumpgen-shared/types";
 
 export const centreTitleAndTime: FabricTemplate =
   (overlay, convertX, convertY) => (fabric, canvas) => {
@@ -70,5 +70,5 @@ export const centreTitleAndTime: FabricTemplate =
   };
 
 export const load: BumpGenPlugin = (registerTemplate) => {
-  registerTemplate('centre-title-and-time', centreTitleAndTime)
+  registerTemplate("centre-title-and-time", centreTitleAndTime);
 };

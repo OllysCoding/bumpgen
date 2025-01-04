@@ -1,3 +1,3 @@
 export const load = () => {
-  console.log('wip');
-}
+  console.log("wip");
+};

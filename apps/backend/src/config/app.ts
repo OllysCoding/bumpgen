@@ -12,14 +12,14 @@ addFormats(ajv);
 
 type ChannelId = string;
 export interface ChannelConfig {
-  template: "centre-title-and-time",
-  backgroundContent: "*" | string[],
+  template: "centre-title-and-time";
+  backgroundContent: "*" | string[];
 }
 
 export interface AppConfig {
   logLevel: LogLevel;
   language: string;
-  experimentalPluginsSupport: boolean,
+  experimentalPluginsSupport: boolean;
   /**
    * Number of minutes between checks.
    */
@@ -41,29 +41,32 @@ const schema: JSONSchemaType<AppConfig> = {
       type: "string",
       enum: Object.values(LogLevel),
     },
-    experimentalPluginsSupport: { type: 'boolean' },
+    experimentalPluginsSupport: { type: "boolean" },
     language: { type: "string" },
     interval: { type: "number", nullable: true, minimum: 1, maximum: 60 },
     xmlTvUrl: { type: "string", format: "uri" },
     outputFolder: { type: "string" },
     backgroundContentFolder: { type: "string" },
-    channels: { 
-      type: "object",  
+    channels: {
+      type: "object",
       additionalProperties: {
         type: "object",
         properties: {
           template: {
-            type: 'string',
-            enum: ['centre-title-and-time']
+            type: "string",
+            enum: ["centre-title-and-time"],
           },
           backgroundContent: {
-            oneOf: [{ type: 'string'}, { type: "array", items: { type: 'string' } }]
-          }
+            oneOf: [
+              { type: "string" },
+              { type: "array", items: { type: "string" } },
+            ],
+          },
         },
-        required: ["template", "backgroundContent"]
+        required: ["template", "backgroundContent"],
       },
-      required: []
-    }
+      required: [],
+    },
   },
   required: [
     "logLevel",
@@ -72,14 +75,15 @@ const schema: JSONSchemaType<AppConfig> = {
     "xmlTvUrl",
     "outputFolder",
     "backgroundContentFolder",
-    "channels"
+    "channels",
   ],
   additionalProperties: false,
 };
 
 const validate = ajv.compile(schema);
 
-export const configFilePath = process.env.CONFIG_FILE_PATH || DEFAULT_CONFIG_PATH;
+export const configFilePath =
+  process.env.CONFIG_FILE_PATH || DEFAULT_CONFIG_PATH;
 
 const getConfig = (): AppConfig => {
   try {

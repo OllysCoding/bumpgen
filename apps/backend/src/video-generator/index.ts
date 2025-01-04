@@ -48,7 +48,7 @@ export interface VideoOptions {
   outputDir: string;
   outputFileName: string;
   length: number;
-  template: FabricTemplate,
+  template: FabricTemplate;
 }
 
 const randomInteger = (min: number, max: number) => {

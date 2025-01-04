@@ -3,7 +3,14 @@ import {
   getNextProgrammeForChannel,
   getValueForConfiguredLang,
 } from "../xmltv/index.js";
-import { failure, isFailure, isSuccess, success, unwrap, type Result } from "../result/index.js";
+import {
+  failure,
+  isFailure,
+  isSuccess,
+  success,
+  unwrap,
+  type Result,
+} from "../result/index.js";
 import {
   createOverlayConfigFromProgramme,
   makeVideo,
@@ -15,38 +22,50 @@ import { glob } from "glob";
 import { Templates } from "../templates/index.js";
 
 const getChannelConfig = (channelId: string): ChannelConfig | undefined => {
-  return appConfig.channels[channelId] || appConfig.channels["*"] || undefined
-}
+  return appConfig.channels[channelId] || appConfig.channels["*"] || undefined;
+};
 
 const pickRandom = <T>(arr: T[]): T => {
   return arr[Math.floor(Math.random() * arr.length)] as T;
-}
+};
 
-const getBackgroundContentForChannel = async (channelConfig: ChannelConfig): Promise<Result<string>> => {
-  const allAvailableFiles = await glob(`${appConfig.backgroundContentFolder}/*`, { absolute: true });
+const getBackgroundContentForChannel = async (
+  channelConfig: ChannelConfig,
+): Promise<Result<string>> => {
+  const allAvailableFiles = await glob(
+    `${appConfig.backgroundContentFolder}/*`,
+    { absolute: true },
+  );
   if (allAvailableFiles.length === 0) {
-    return failure('No background content available');
+    return failure("No background content available");
   }
 
   if (Array.isArray(channelConfig.backgroundContent)) {
-    const filteredContent = allAvailableFiles.filter(name => channelConfig.backgroundContent.includes(name))
+    const filteredContent = allAvailableFiles.filter((name) =>
+      channelConfig.backgroundContent.includes(name),
+    );
     if (filteredContent.length !== channelConfig.backgroundContent.length) {
-      const missing = allAvailableFiles.filter(name => !channelConfig.backgroundContent.includes(name))
-      logDebug('Some files configured for channel are missing from background contents folder: ', missing);
+      const missing = allAvailableFiles.filter(
+        (name) => !channelConfig.backgroundContent.includes(name),
+      );
+      logDebug(
+        "Some files configured for channel are missing from background contents folder: ",
+        missing,
+      );
     }
     if (filteredContent.length === 0) {
-      return failure('No background content available once filter is applied');
+      return failure("No background content available once filter is applied");
     }
     return success(pickRandom(filteredContent));
   } else {
     return success(pickRandom(allAvailableFiles));
   }
-}
+};
 
 const channelTask = async (
   channel: XmltvChannel,
   programmes: XmltvProgramme[],
-  channelConfig: ChannelConfig
+  channelConfig: ChannelConfig,
 ): ReturnType<typeof makeVideo> => {
   const currentProgramme = getNextProgrammeForChannel(channel, programmes);
   if (isFailure(currentProgramme)) {
@@ -58,12 +77,13 @@ const channelTask = async (
     return failure("Failed to get overlay config", overlay.error);
   }
 
-  const backgroundContentPath = await getBackgroundContentForChannel(channelConfig);
+  const backgroundContentPath =
+    await getBackgroundContentForChannel(channelConfig);
   if (isFailure(backgroundContentPath)) {
     return backgroundContentPath;
   }
 
-  const template = Templates.getTemplateByName(channelConfig.template)
+  const template = Templates.getTemplateByName(channelConfig.template);
   if (isFailure(template)) {
     return template;
   }
@@ -82,7 +102,7 @@ const channelTask = async (
       filePath: backgroundContentPath.result,
       startSeconds: 10,
       endSeconds: 2711,
-    }
+    },
   });
 };
 
@@ -98,7 +118,11 @@ export default async () => {
       }
 
       logInfo(`Started task for channel ${channel.id}`);
-      const result = await channelTask(channel, xmlTv.result.programmes, channelConfig);
+      const result = await channelTask(
+        channel,
+        xmlTv.result.programmes,
+        channelConfig,
+      );
       if (isFailure(result)) {
         logError(`Failed channel task for channel ${channel.id}`, result.error);
       } else {

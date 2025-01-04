@@ -1,5 +1,4 @@
-
-import 'gsap'
+import "gsap";
 import { fabric } from "fabric";
 
 export interface VideoOverlay {
@@ -22,4 +21,6 @@ export type FabricTemplate = (
   anim: gsap.core.Timeline,
 ) => void;
 
-export type BumpGenPlugin = (registerTemplate: (name: string, template: FabricTemplate) => void) => void;
+export type BumpGenPlugin = (
+  registerTemplate: (name: string, template: FabricTemplate) => void,
+) => void;
