@@ -16,13 +16,12 @@ export type ConverterFunc = (val: number) => number;
 export type FabricTemplate = (
   overlay: VideoOverlay,
   helpers: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     getFontProperties: (
       family: string,
       weight?: string,
       style?: FontStyle,
     ) =>
-      | {}
+      | Record<string, never>
       | { fontFamily: string; fontWeight?: string; fontStyle?: FontStyle };
     convertX: ConverterFunc;
     convertY: ConverterFunc;
