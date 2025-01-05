@@ -1,0 +1,30 @@
+{
+  "family": "Poppins",
+  "files": {
+    "Poppins-Regular.ttf": {},
+    "Poppins-Italic.ttf": {
+      "style": "italic"
+    },
+    "Poppins-Bold.ttf": {
+      "weight": "bold"
+    },
+    "Poppins-BoldItalic.ttf": {
+      "weight": "bold",
+      "style": "italic"
+    },
+    "Poppins-ExtraBold.ttf": {
+      "weight": "bolder"
+    },
+    "Poppins-ExtraBoldItalic.ttf": {
+      "weight": "bolder",
+      "style": "italic"
+    },
+    "Poppins-Light.ttf": {
+      "weight": "lighter"
+    },
+    "Poppins-LightItalic.ttf": {
+      "weight": "lighter",
+      "style": "italic"
+    }
+  }
+}

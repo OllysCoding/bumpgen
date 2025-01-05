@@ -10,12 +10,15 @@ export interface VideoOverlay {
   start?: Date;
 }
 
+type FontStyle = "normal" | "italic" | "oblique"
+
 export type ConverterFunc = (val: number) => number;
-export type FabricTemplate = (
-  overlay: VideoOverlay,
+export type FabricTemplate = (overlay: VideoOverlay, helpers: {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  getFontProperties: (family: string, weight?: string, style?: FontStyle) => {} | { fontFamily: string, fontWeight?: string, fontStyle?: FontStyle }
   convertX: ConverterFunc,
   convertY: ConverterFunc,
-) => (
+}) => (
   fabricInstance: typeof fabric,
   canvas: fabric.StaticCanvas,
   anim: gsap.core.Timeline,

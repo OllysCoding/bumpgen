@@ -20,6 +20,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { logDebug, logError } from "../logger/index.js";
 import { existsSync } from "node:fs";
+import { Fonts } from "../fonts/index.js";
 
 export interface VideoOverlay {
   title: string;
@@ -137,8 +138,11 @@ export const makeVideo = async (
       makeScene: (fabric, canvas, anim, compose) => {
         options.template(
           options.overlay,
-          (val: number) => val * width,
-          (val: number) => val * height,
+          {     
+            getFontProperties: (...args) => Fonts.getFontProperties(...args),      
+            convertX: (val: number) => val * width,
+            convertY: (val: number) => val * height,
+          }
         )(fabric, canvas, anim);
         anim.duration(options.length);
         compose();
