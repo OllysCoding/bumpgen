@@ -5,6 +5,7 @@ import Ajv, { type JSONSchemaType } from "ajv";
 import { readFile } from "fs/promises";
 import { logDebug, logError, logInfo } from "../logger/index.js";
 import { registerFont } from "canvas";
+import type { GetFontProperties } from "bumpgen-shared/types";
 
 const ajv = new Ajv();
 
@@ -47,12 +48,16 @@ export abstract class Fonts {
     string,
     {
       family: string;
-      weight: string | number;
+      weight: string;
       style: "normal" | "italic" | "oblique";
     }[]
   > = {};
 
-  static getFontProperties(family: string, weight?: string, style?: string) {
+  static getFontProperties(
+    family: string,
+    weight?: string,
+    style?: string,
+  ): ReturnType<GetFontProperties> {
     const weightOrDefault = weight ?? "normal";
     const styleOrDefault = style ?? "normal";
 
