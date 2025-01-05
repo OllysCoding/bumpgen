@@ -13,6 +13,7 @@ RUN apk add --update --no-cache \
     libtool \
     autoconf \
     automake
+RUN apk add --update --no-cache font-noto
 
 WORKDIR /usr/src/app
 
