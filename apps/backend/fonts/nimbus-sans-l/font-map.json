@@ -1,0 +1,16 @@
+{
+  "family": "NimbusSanL",
+  "files": {
+    "NimbusSanL-Bold.ttf": {
+      "weight:": "bold"
+    },
+    "NimbusSanL-BoldItal.ttf": {
+      "weight:": "bold",
+      "style:": "italic"
+    },
+    "NimbusSanL-Regu.ttf": {},
+    "NimbusSanL-ReguItal.ttf": {
+      "style:": "italic"
+    }
+  }
+}

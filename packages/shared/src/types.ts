@@ -10,11 +10,23 @@ export interface VideoOverlay {
   start?: Date;
 }
 
+type FontStyle = "normal" | "italic" | "oblique";
+export type GetFontProperties = (
+  family: string,
+  weight?: string,
+  style?: FontStyle,
+) =>
+  | Record<string, never>
+  | { fontFamily: string; fontWeight?: string; fontStyle?: FontStyle };
+
 export type ConverterFunc = (val: number) => number;
 export type FabricTemplate = (
   overlay: VideoOverlay,
-  convertX: ConverterFunc,
-  convertY: ConverterFunc,
+  helpers: {
+    getFontProperties: GetFontProperties;
+    convertX: ConverterFunc;
+    convertY: ConverterFunc;
+  },
 ) => (
   fabricInstance: typeof fabric,
   canvas: fabric.StaticCanvas,
