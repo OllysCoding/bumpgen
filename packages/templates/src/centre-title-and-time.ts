@@ -1,9 +1,10 @@
 import type { BumpGenPlugin, FabricTemplate } from "bumpgen-shared/types";
 
 export const centreTitleAndTime: FabricTemplate =
-  (overlay, { convertX, convertY, getFontProperties }) => (fabric, canvas) => {
+  (overlay, { convertX, convertY, getFontProperties }) =>
+  (fabric, canvas) => {
     const textGroupObjects: fabric.Object[] = [];
-    const fontProperties = getFontProperties('Poppins');
+    const fontProperties = getFontProperties("Poppins");
 
     if (overlay.start) {
       const startString = overlay.start?.toLocaleTimeString("en-UK", {

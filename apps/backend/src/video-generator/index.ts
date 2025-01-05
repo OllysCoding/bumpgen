@@ -136,14 +136,11 @@ export const makeVideo = async (
       height,
       fps: 1,
       makeScene: (fabric, canvas, anim, compose) => {
-        options.template(
-          options.overlay,
-          {     
-            getFontProperties: (...args) => Fonts.getFontProperties(...args),      
-            convertX: (val: number) => val * width,
-            convertY: (val: number) => val * height,
-          }
-        )(fabric, canvas, anim);
+        options.template(options.overlay, {
+          getFontProperties: (...args) => Fonts.getFontProperties(...args),
+          convertX: (val: number) => val * width,
+          convertY: (val: number) => val * height,
+        })(fabric, canvas, anim);
         anim.duration(options.length);
         compose();
       },
