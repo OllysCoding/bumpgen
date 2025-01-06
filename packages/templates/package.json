@@ -19,12 +19,11 @@
   "description": "",
   "dependencies": {
     "canvas": "^2.11.2",
-    "fabric": "^4.6.0",
+    "fabric": "^6.5.4",
     "gsap": "^3.12.5"
   },
   "devDependencies": {
     "@swc/cli": "^0.5.2",
-    "@swc/core": "^1.10.4",
-    "@types/fabric": "^5.3.9"
+    "@swc/core": "^1.10.4"
   }
 }

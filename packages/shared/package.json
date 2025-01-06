@@ -20,10 +20,8 @@
   "description": "",
   "dependencies": {
     "canvas": "^2.11.2",
-    "fabric": "^4.6.0",
+    "fabric": "^6.5.4",
     "gsap": "^3.12.5"
   },
-  "devDependencies": {
-    "@types/fabric": "^5.3.9"
-  }
+  "devDependencies": {}
 }

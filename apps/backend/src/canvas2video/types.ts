@@ -1,13 +1,9 @@
 import { Readable, Writable } from "stream";
-import fabric from "fabric";
+import * as fabric from "fabric/node";
 
 type mediaPath = string;
 
-interface BaseConfig {
-  silent?: boolean;
-}
-
-export interface EncoderConfig extends BaseConfig {
+export interface EncoderConfig {
   frameStream: Readable;
   output: mediaPath;
   width: number;
@@ -32,13 +28,13 @@ interface EncoderOutput {
 }
 
 type makeSceneFunction = (
-  fabricInstance: typeof fabric.fabric,
-  canvas: fabric.fabric.StaticCanvas,
+  fabricInstance: typeof fabric,
+  canvas: fabric.StaticCanvas,
   anim: gsap.core.Timeline,
   compose: () => void,
 ) => void;
 
-export interface RendererConfig extends BaseConfig {
+export interface RendererConfig {
   width: number;
   height: number;
   fps: number;

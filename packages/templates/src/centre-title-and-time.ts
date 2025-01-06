@@ -1,9 +1,10 @@
 import type { BumpGenPlugin, FabricTemplate } from "bumpgen-shared/types";
+import type { FabricObject } from "fabric";
 
 export const centreTitleAndTime: FabricTemplate =
   (overlay, { convertX, convertY, getFontProperties }) =>
   (fabric, canvas) => {
-    const textGroupObjects: fabric.Object[] = [];
+    const textGroupObjects: FabricObject[] = [];
     const fontProperties = getFontProperties("Poppins");
 
     if (overlay.start) {
@@ -14,7 +15,7 @@ export const centreTitleAndTime: FabricTemplate =
       });
 
       const time = startString
-        ? new fabric.Text(startString, {
+        ? new fabric.FabricText(startString, {
             ...fontProperties,
             originX: "center",
             fontSize: 80,
@@ -29,7 +30,7 @@ export const centreTitleAndTime: FabricTemplate =
     const titleText = overlay.episode
       ? `${overlay.title} | ${overlay.episode}`
       : overlay.title;
-    const title = new fabric.Text(titleText, {
+    const title = new fabric.FabricText(titleText, {
       ...fontProperties,
       originX: "center",
       top: timeBounding && timeBounding.height + 20,
