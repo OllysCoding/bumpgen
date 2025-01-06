@@ -131,7 +131,6 @@ export const makeVideo = async (
     const height = 1080;
 
     const stream = await renderer({
-      silent: true,
       width,
       height,
       fps: 1,
@@ -147,7 +146,6 @@ export const makeVideo = async (
     });
 
     const baseEncoderConfig: EncoderConfig = {
-      silent: true,
       width: 1920,
       height: 1080,
       frameStream: stream,

@@ -1,5 +1,5 @@
 import "gsap";
-import { fabric } from "fabric";
+import * as fabric from "fabric/node";
 
 export interface VideoOverlay {
   title: string;

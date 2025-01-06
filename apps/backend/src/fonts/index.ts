@@ -113,7 +113,7 @@ export abstract class Fonts {
                 weight: properties.weight ?? "normal",
                 style: properties.style ?? "normal",
               };
-              registerFont(fontFilePath, parsedProperties);
+              await registerFont(fontFilePath, parsedProperties);
               if (!this._fonts[parsed.family]) this._fonts[parsed.family] = [];
               this._fonts[parsed.family]?.push(parsedProperties);
               logInfo(`Successfully registered font from ${fontFilePath}`);

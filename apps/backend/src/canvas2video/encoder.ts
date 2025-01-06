@@ -1,20 +1,11 @@
 import ffmpeg from "fluent-ffmpeg";
 import * as fs from "fs";
 import * as path from "path";
-import * as cliProgress from "cli-progress";
 import { type Encoder } from "./types.js";
 import { logError } from "../logger/index.js";
 
-const progressBar = new cliProgress.SingleBar({
-  format: `Processing | {bar} | {percentage}%`,
-  barCompleteChar: "\u2588",
-  barIncompleteChar: "\u2591",
-  hideCursor: true,
-});
-
 const createDir = (
   reject: (reason?: Error) => void,
-  silent: boolean,
   output: string,
 ) => {
   try {
@@ -49,9 +40,6 @@ const createFilter = (backgroundVideo: {
   ];
 };
 
-const percent: (percent?: number) => number = (percent) =>
-  percent ? parseFloat((percent as number).toFixed(2)) : 0;
-
 const outputOptions = [
   "-preset veryfast",
   "-crf 24",
@@ -63,8 +51,8 @@ const outputOptions = [
 
 const encoder: Encoder = (config) =>
   new Promise((resolve, reject) => {
-    const { frameStream, output, backgroundVideo, fps, silent = true } = config;
-    createDir(reject, silent, output);
+    const { frameStream, output, backgroundVideo, fps } = config;
+    createDir(reject, output);
 
     const outputStream = fs.createWriteStream(output);
     const command = ffmpeg();
@@ -87,25 +75,12 @@ const encoder: Encoder = (config) =>
       command.complexFilter([...createFilter(backgroundVideo)], "tmp");
 
     command.output(outputStream);
-    // command.size(`${width}x${height}`);
-
-    command.on("start", () => {
-      if (!silent) progressBar.start(100, 0);
-    });
 
     command.on("end", () => {
-      if (!silent) progressBar.stop();
-      if (!silent) console.log("Processing complete...");
       resolve({ path: output, stream: outputStream });
     });
 
-    command.on("progress", (progress) => {
-      if (!silent) progressBar.update(percent(progress.percent));
-    });
-
     command.on("error", (err: Error) => {
-      if (!silent)
-        console.log("An error occured while processing,", err.message);
       reject(new Error(err.message));
     });
 

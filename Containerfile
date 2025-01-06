@@ -1,19 +1,7 @@
-FROM node:alpine
+FROM node:22
 
-ENV PYTHONUNBUFFERED=1
-RUN apk update
-RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
-RUN apk add --update --no-cache \
-    make \
-    g++ \
-    jpeg-dev \
-    cairo-dev \
-    giflib-dev \
-    pango-dev \
-    libtool \
-    autoconf \
-    automake
-RUN apk add --update --no-cache font-noto
+RUN apt-get update
+RUN apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev -y
 
 WORKDIR /usr/src/app
 
