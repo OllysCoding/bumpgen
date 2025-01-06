@@ -26,7 +26,6 @@ const renderer: Renderer = (config) =>
       const renderFrames = () => {
         anim.progress(currentFrame++ / totalFrames);
         if (currentFrame <= totalFrames) {
-
           canvas.renderAll();
           const buffer = Buffer.from(
             canvas.toDataURL().replace(/^data:\w+\/\w+;base64,/, ""),

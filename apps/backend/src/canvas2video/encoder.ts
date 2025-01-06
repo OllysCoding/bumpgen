@@ -4,10 +4,7 @@ import * as path from "path";
 import { type Encoder } from "./types.js";
 import { logError } from "../logger/index.js";
 
-const createDir = (
-  reject: (reason?: Error) => void,
-  output: string,
-) => {
+const createDir = (reject: (reason?: Error) => void, output: string) => {
   try {
     const outDir = path.dirname(output);
     if (!fs.existsSync(outDir)) {
