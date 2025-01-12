@@ -1,6 +1,6 @@
 import {
   fetchAndParseXmlTv,
-  getNextProgrammeForChannel,
+  getNextProgrammesForChannel,
   getValueForConfiguredLang,
 } from "../xmltv/index.js";
 import {
@@ -12,7 +12,7 @@ import {
   type Result,
 } from "../result/index.js";
 import {
-  createOverlayConfigFromProgramme,
+  createProgrammeInfoFromProgrammes,
   makeVideo,
 } from "../video-generator/index.js";
 import { appConfig, type ChannelConfig } from "../config/app.js";
@@ -67,14 +67,17 @@ const channelTask = async (
   programmes: XmltvProgramme[],
   channelConfig: ChannelConfig,
 ): ReturnType<typeof makeVideo> => {
-  const currentProgramme = getNextProgrammeForChannel(channel, programmes);
-  if (isFailure(currentProgramme)) {
-    return failure("Failed to get next programme", currentProgramme.error);
+  const nextProgrammes = getNextProgrammesForChannel(channel, programmes);
+  if (isFailure(nextProgrammes)) {
+    return failure("Failed to get next programme", nextProgrammes.error);
   }
 
-  const overlay = createOverlayConfigFromProgramme(currentProgramme.result);
-  if (isFailure(overlay)) {
-    return failure("Failed to get overlay config", overlay.error);
+  const programmeInfo = createProgrammeInfoFromProgrammes(
+    nextProgrammes.result,
+  );
+
+  if (isFailure(programmeInfo)) {
+    return failure("Failed to get overlay config", programmeInfo.error);
   }
 
   const backgroundContentPath =
@@ -90,7 +93,7 @@ const channelTask = async (
 
   return makeVideo({
     template: template.result,
-    overlay: overlay.result,
+    programmes: programmeInfo.result,
     outputDir: appConfig.outputFolder,
     outputFileName: `channel-${channel.id}.mp4`,
     length: 20,

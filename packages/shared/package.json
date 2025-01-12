@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./types": "./src/types.ts"
+    "./types": "./types.ts",
+    "./utils": {
+      "import": "./dist/src/utils.js",
+      "types": "./src/utils.ts"
+    }
   },
   "scripts": {
-    "build": "echo \"Skipping build for 'shared' package\"",
+    "build": "swc ./src/ -d ./dist --config-file .swcrc",
     "tsc": "tsc -p tsconfig.json",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",

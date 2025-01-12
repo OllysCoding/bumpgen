@@ -21,7 +21,9 @@ export const fetchAndParseXmlTv = async (
   try {
     const response = await fetch(path);
     const body = await response.text();
-    const xmlTv = parseXmltv(body);
+    // Fix a weird bug where the apostrophe specifically isn't decoded
+    const bodyFixed = body.replaceAll("&#39;", "'");
+    const xmlTv = parseXmltv(bodyFixed);
 
     const { channels, programmes } = xmlTv;
     if (!channels) {
@@ -40,29 +42,32 @@ export const fetchAndParseXmlTv = async (
   }
 };
 
-export const getNextProgrammeForChannel = (
+export const getNextProgrammesForChannel = (
   channel: XmltvChannel,
   programmes: XmltvProgramme[],
-): Result<XmltvProgramme> => {
+): Result<[XmltvProgramme, ...XmltvProgramme[]]> => {
   const forChannel = programmes.filter((p) => p.channel === channel.id);
   const sorted = [...forChannel].sort((a, b) => {
     return a.start.getTime() - b.start.getTime();
   });
 
-  const current = sorted.find((programme) => {
+  const nextUpIndex = sorted.findIndex((programme) => {
     if (Date.now() < programme.start.getTime()) return true;
     else return false;
   });
 
-  if (current) {
-    return success(current);
-  } else {
+  if (nextUpIndex === -1) {
     logDebug("Failed to find current program for channel " + channel.id);
     return failure(
       "Failed to find current programme playing on channel with id " +
         channel.id,
     );
   }
+
+  return success([
+    programmes[nextUpIndex]!,
+    ...programmes.slice(nextUpIndex + 1),
+  ]);
 };
 
 export const getOnScreenEpisodeNumber = (
