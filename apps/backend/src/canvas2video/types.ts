@@ -32,7 +32,7 @@ type makeSceneFunction = (
   canvas: fabric.StaticCanvas,
   anim: gsap.core.Timeline,
   compose: () => void,
-) => void;
+) => Promise<void>;
 
 export interface RendererConfig {
   width: number;

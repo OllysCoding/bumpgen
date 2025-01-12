@@ -1,5 +1,7 @@
 import type { XmltvProgramme } from "@iptv/xmltv";
-import type { FabricTemplate } from "bumpgen-shared/types";
+import type { FabricTemplate, ProgrammeInfo } from "bumpgen-shared/types";
+import { isNotUndefined } from "bumpgen-shared/utils";
+
 import {
   failure,
   isFailure,
@@ -22,15 +24,6 @@ import { logDebug, logError } from "../logger/index.js";
 import { existsSync } from "node:fs";
 import { Fonts } from "../fonts/index.js";
 
-export interface VideoOverlay {
-  title: string;
-  subtitle?: string;
-  episode?: string;
-  description?: string;
-  iconUrl?: string;
-  start?: Date;
-}
-
 export interface ChannelInfo {
   id: string;
   name?: string;
@@ -44,7 +37,7 @@ export interface VideoBackground {
 
 export interface VideoOptions {
   channelInfo: ChannelInfo;
-  overlay: VideoOverlay;
+  programmes: [ProgrammeInfo, ...ProgrammeInfo[]];
   background?: VideoBackground;
   outputDir: string;
   outputFileName: string;
@@ -72,7 +65,7 @@ const getBackgroundVideoStartAndEnd = (
 };
 
 const getProgrammeId = (options: VideoOptions) =>
-  `${options.overlay.title}-${options.overlay.episode}`;
+  `${options.programmes[0].title}-${options.programmes[0].episode}`;
 
 const shouldGenerateVideo = async (
   options: VideoOptions,
@@ -134,8 +127,8 @@ export const makeVideo = async (
       width,
       height,
       fps: 1,
-      makeScene: (fabric, canvas, anim, compose) => {
-        options.template(options.overlay, {
+      makeScene: async (fabric, canvas, anim, compose) => {
+        await options.template(options.programmes, {
           getFontProperties: (...args) => Fonts.getFontProperties(...args),
           convertX: (val: number) => val * width,
           convertY: (val: number) => val * height,
@@ -183,25 +176,46 @@ export const makeVideo = async (
   }
 };
 
-export const createOverlayConfigFromProgramme = (
-  programme: XmltvProgramme,
-): Result<VideoOverlay> => {
-  const title = getValueForConfiguredLang(programme.title);
-  if (isFailure(title)) {
-    return failure("Title required to create overlay");
+export const createProgrammeInfoFromProgrammes = (
+  programmes: [XmltvProgramme, ...XmltvProgramme[]],
+): Result<[ProgrammeInfo, ...ProgrammeInfo[]]> => {
+  const createProgrammeInfo = (
+    programme: XmltvProgramme,
+  ): Result<ProgrammeInfo> => {
+    const title = getValueForConfiguredLang(programme.title);
+    if (isFailure(title)) {
+      return failure("Title required to create overlay");
+    }
+
+    const subtitle = getValueForConfiguredLang(programme.subTitle);
+    const episode = getOnScreenEpisodeNumber(programme.episodeNum);
+    const description = getValueForConfiguredLang(programme.desc);
+    const iconUrl = getBestIcon(programme.icon);
+
+    return success({
+      title: title.result,
+      subtitle: unwrap(subtitle),
+      episode: unwrap(episode),
+      description: unwrap(description),
+      start: programme.start,
+      end: programme.stop,
+      iconUrl: unwrap(iconUrl),
+    });
+  };
+
+  const firstItemResult = createProgrammeInfo(programmes[0]);
+
+  if (isFailure(firstItemResult)) {
+    // Pass on the failure
+    return firstItemResult;
   }
 
-  const subtitle = getValueForConfiguredLang(programme.subTitle);
-  const episode = getOnScreenEpisodeNumber(programme.episodeNum);
-  const description = getValueForConfiguredLang(programme.desc);
-  const iconUrl = getBestIcon(programme.icon);
-
-  return success({
-    title: title.result,
-    subtitle: unwrap(subtitle),
-    episode: unwrap(episode),
-    description: unwrap(description),
-    start: programme.start,
-    iconUrl: unwrap(iconUrl),
-  });
+  return success([
+    firstItemResult.result,
+    ...programmes
+      .slice(1)
+      .map(createProgrammeInfo)
+      .map(unwrap)
+      .filter(isNotUndefined),
+  ]);
 };

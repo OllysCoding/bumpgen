@@ -2,13 +2,15 @@ import type { BumpGenPlugin, FabricTemplate } from "bumpgen-shared/types";
 import type { FabricObject } from "fabric";
 
 export const centreTitleAndTime: FabricTemplate =
-  (overlay, { convertX, convertY, getFontProperties }) =>
-  (fabric, canvas) => {
+  (programmes, { convertX, convertY, getFontProperties }) =>
+  async (fabric, canvas) => {
+    const nextUp = programmes[0];
+
     const textGroupObjects: FabricObject[] = [];
     const fontProperties = getFontProperties("Poppins");
 
-    if (overlay.start) {
-      const startString = overlay.start?.toLocaleTimeString("en-UK", {
+    if (nextUp.start) {
+      const startString = nextUp.start?.toLocaleTimeString("en-UK", {
         hour: "numeric",
         minute: "numeric",
         second: undefined,
@@ -27,9 +29,9 @@ export const centreTitleAndTime: FabricTemplate =
     }
 
     const timeBounding = textGroupObjects[0]?.getBoundingRect();
-    const titleText = overlay.episode
-      ? `${overlay.title} | ${overlay.episode}`
-      : overlay.title;
+    const titleText = nextUp.episode
+      ? `${nextUp.title} | ${nextUp.episode}`
+      : nextUp.title;
     const title = new fabric.FabricText(titleText, {
       ...fontProperties,
       originX: "center",
@@ -38,9 +40,13 @@ export const centreTitleAndTime: FabricTemplate =
       fill: "#ffffff",
     });
 
+    if (title.getBoundingRect().width > convertX(0.9)) {
+      title.scale(Math.max(convertX(0.9) / title.getBoundingRect().width, 0.5));
+    }
+
     textGroupObjects.push(title);
 
-    if (overlay.start) {
+    if (nextUp.start) {
       const titleBounding = title.getBoundingRect();
       const line = new fabric.Rect({
         left: titleBounding.left,

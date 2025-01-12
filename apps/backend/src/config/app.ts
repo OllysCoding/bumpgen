@@ -12,7 +12,7 @@ addFormats(ajv);
 
 type ChannelId = string;
 export interface ChannelConfig {
-  template: "centre-title-and-time";
+  template: string;
   backgroundContent: "*" | string[];
 }
 
@@ -54,7 +54,7 @@ const schema: JSONSchemaType<AppConfig> = {
         properties: {
           template: {
             type: "string",
-            enum: ["centre-title-and-time"],
+            // enum: ["centre-title-and-time"],
           },
           backgroundContent: {
             oneOf: [
