@@ -29,15 +29,9 @@ export const centreTitleAndTime: FabricTemplate =
     }
 
     const timeBounding = textGroupObjects[0]?.getBoundingRect();
-<<<<<<< HEAD
     const titleText = nextUp.episode
       ? `${nextUp.title} | ${nextUp.episode}`
       : nextUp.title;
-=======
-    const titleText = overlay.episode
-      ? `${overlay.title} | ${overlay.episode}`
-      : overlay.title;
->>>>>>> c36272b21a10621f144d71ff45c557d003e681ec
     const title = new fabric.FabricText(titleText, {
       ...fontProperties,
       originX: "center",
