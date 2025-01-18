@@ -1,19 +1,6 @@
-import type { XmltvProgramme } from "@iptv/xmltv";
 import type { FabricTemplate, ProgrammeInfo } from "bumpgen-shared/types";
-import { isNotUndefined } from "bumpgen-shared/utils";
 
-import {
-  failure,
-  isFailure,
-  success,
-  unwrap,
-  type Result,
-} from "../result/index.js";
-import {
-  getBestIcon,
-  getOnScreenEpisodeNumber,
-  getValueForConfiguredLang,
-} from "../xmltv/index.js";
+import { failure, isFailure, success, type Result } from "../result/index.js";
 
 import { renderer, encoder } from "../canvas2video/index.js";
 
@@ -41,6 +28,8 @@ export interface VideoOptions {
   background?: VideoBackground;
   outputDir: string;
   outputFileName: string;
+  width: number;
+  height: number;
   length: number;
   template: FabricTemplate;
 }
@@ -119,21 +108,28 @@ export const makeVideo = async (
     return success("not-generated");
   }
 
-  try {
-    const width = 1920;
-    const height = 1080;
+  const {
+    width,
+    height,
+    length,
+    programmes,
+    outputDir,
+    outputFileName,
+    background,
+  } = options;
 
+  try {
     const stream = await renderer({
       width,
       height,
       fps: 1,
       makeScene: async (fabric, canvas, anim, compose) => {
-        await options.template(options.programmes, {
+        await options.template(programmes, {
           getFontProperties: (...args) => Fonts.getFontProperties(...args),
           convertX: (val: number) => val * width,
           convertY: (val: number) => val * height,
         })(fabric, canvas, anim);
-        anim.duration(options.length);
+        anim.duration(length);
         compose();
       },
     });
@@ -142,28 +138,25 @@ export const makeVideo = async (
       width: 1920,
       height: 1080,
       frameStream: stream,
-      output: path.join(options.outputDir, options.outputFileName),
+      output: path.join(outputDir, outputFileName),
       fps: {
         input: 1,
         output: 30,
       },
     };
 
-    if (options.background) {
-      const { start, end } = getBackgroundVideoStartAndEnd(
-        options.background,
-        options.length,
-      );
+    if (background) {
+      const { start, end } = getBackgroundVideoStartAndEnd(background, length);
       await encoder({
         ...baseEncoderConfig,
         backgroundVideo: {
-          videoPath: options.background.filePath,
+          videoPath: background.filePath,
           cut: {
             startSeconds: start,
             endSeconds: end,
           },
           inSeconds: 0,
-          outSeconds: options.length,
+          outSeconds: length,
         },
       });
     } else {
@@ -174,48 +167,4 @@ export const makeVideo = async (
   } catch (err) {
     return failure("Failed to create video", err);
   }
-};
-
-export const createProgrammeInfoFromProgrammes = (
-  programmes: [XmltvProgramme, ...XmltvProgramme[]],
-): Result<[ProgrammeInfo, ...ProgrammeInfo[]]> => {
-  const createProgrammeInfo = (
-    programme: XmltvProgramme,
-  ): Result<ProgrammeInfo> => {
-    const title = getValueForConfiguredLang(programme.title);
-    if (isFailure(title)) {
-      return failure("Title required to create overlay");
-    }
-
-    const subtitle = getValueForConfiguredLang(programme.subTitle);
-    const episode = getOnScreenEpisodeNumber(programme.episodeNum);
-    const description = getValueForConfiguredLang(programme.desc);
-    const iconUrl = getBestIcon(programme.icon);
-
-    return success({
-      title: title.result,
-      subtitle: unwrap(subtitle),
-      episode: unwrap(episode),
-      description: unwrap(description),
-      start: programme.start,
-      end: programme.stop,
-      iconUrl: unwrap(iconUrl),
-    });
-  };
-
-  const firstItemResult = createProgrammeInfo(programmes[0]);
-
-  if (isFailure(firstItemResult)) {
-    // Pass on the failure
-    return firstItemResult;
-  }
-
-  return success([
-    firstItemResult.result,
-    ...programmes
-      .slice(1)
-      .map(createProgrammeInfo)
-      .map(unwrap)
-      .filter(isNotUndefined),
-  ]);
 };
