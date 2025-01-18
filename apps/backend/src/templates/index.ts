@@ -19,7 +19,7 @@ export abstract class Templates {
       const defaultFiles = await glob("../../dist/templates/src/*.js", {
         absolute: true,
       });
-      const pluginFiles = appConfig.experimentalPluginsSupport
+      const pluginFiles = appConfig.config.experimentalPluginsSupport
         ? await glob(path.join(configFilePath, "/plugins/**/plugin.js"), {
             absolute: true,
           })

@@ -42,10 +42,12 @@ export const fetchAndParseXmlTv = async (
   }
 };
 
+export type NextProgrammes = [XmltvProgramme, ...XmltvProgramme[]];
+
 export const getNextProgrammesForChannel = (
   channel: XmltvChannel,
   programmes: XmltvProgramme[],
-): Result<[XmltvProgramme, ...XmltvProgramme[]]> => {
+): Result<NextProgrammes> => {
   const forChannel = programmes.filter((p) => p.channel === channel.id);
   const sorted = [...forChannel].sort((a, b) => {
     return a.start.getTime() - b.start.getTime();
@@ -101,7 +103,7 @@ export const getValueForConfiguredLang = <T>(
     return failure("Field is empty");
   }
 
-  const value = arr.find((v) => v.lang === appConfig.language);
+  const value = arr.find((v) => v.lang === appConfig.config.language);
   if (value) {
     return success(value._value);
   } else {
@@ -109,7 +111,7 @@ export const getValueForConfiguredLang = <T>(
       const fallback = arr.find((v) => v.lang === undefined);
       if (fallback) return success(fallback._value);
     }
-    return failure("Failed to find field for lang", +appConfig.language);
+    return failure("Failed to find field for lang", +appConfig.config.language);
   }
 };
 

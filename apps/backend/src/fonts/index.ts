@@ -87,7 +87,7 @@ export abstract class Fonts {
     const defaultFiles = await glob("./fonts/**/font-map.json", {
       absolute: true,
     });
-    const pluginFiles = appConfig.experimentalPluginsSupport
+    const pluginFiles = appConfig.config.experimentalPluginsSupport
       ? await glob(path.join(configFilePath, "/plugins/**/font-map.json"), {
           absolute: true,
         })

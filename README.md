@@ -47,9 +47,6 @@ Bumpgen offers a number of default templates to use for your channels, as well a
 
 ## What's still needed for MVP?
 
-- Give templates all upcoming shows not just the next one & build 'left-panel-next-5' template
-- Options for resolution (per channel)
-- Option for length including \* as 'fill'
 - Plugins: some kind of versioning + publish types + example repo + language/locale in template
 - Frontend for configuring
 - Allow animations?

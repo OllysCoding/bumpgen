@@ -1,4 +1,4 @@
-import assert from "node:assert";
+import { appConfig } from "../config/app.js";
 
 export enum LogLevel {
   DEBUG = "DEBUG",
@@ -6,22 +6,22 @@ export enum LogLevel {
   ERROR = "ERROR",
 }
 
-const logLevel = (process.env.LOG_LEVEL as LogLevel) || LogLevel.DEBUG;
-
 const logLevelMap = {
   [LogLevel.DEBUG]: [LogLevel.DEBUG, LogLevel.INFO, LogLevel.ERROR],
   [LogLevel.INFO]: [LogLevel.INFO, LogLevel.ERROR],
   [LogLevel.ERROR]: [LogLevel.ERROR],
 };
 
-assert(Array.isArray(logLevelMap[logLevel]), "Invalid log level configured");
-
 export const log = (
   level: LogLevel,
   message: string,
   ...args: unknown[]
 ): void => {
-  if (logLevelMap[logLevel].includes(level)) {
+  if (
+    logLevelMap[
+      appConfig.isInitialized ? appConfig.config.logLevel : LogLevel.DEBUG
+    ].includes(level)
+  ) {
     console.log(`[${new Date().toISOString()} - ${level}] ` + message, ...args);
   }
 };
