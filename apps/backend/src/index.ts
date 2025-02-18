@@ -1,20 +1,40 @@
+import "reflect-metadata";
 import "dotenv/config";
 
-import { appConfig } from "./config/app.js";
-import { Templates } from "./templates/index.js";
-import { Fonts } from "./fonts/index.js";
-import { jobScheduler } from "./jobs/index.js";
+import { Container } from "typedi";
+
+import { initializeApi } from "./api/index.js";
+import { AppConfigService } from "./services/AppConfigService.js";
+import { BackgroundContentService } from "./services/BackgroundContentService.js";
+import { FontsService } from "./services/FontsService.js";
+import { TemplatesService } from "./services/TemplatesService.js";
+import { XmlTvService } from "./services/XmlTvService.js";
+import { JobSchedulerService } from "./services/JobSchedulerService.js";
+import { logInfo } from "./logger/index.js";
 
 const initialize = async () => {
-  await appConfig.loadConfig();
+  // appConfig.onInitialised(async () => {
+  //   await Templates.registerTemplates();
+  //   await Fonts.registerFonts();
 
-  if (appConfig.isInitialized) {
-    await Templates.registerTemplates();
-    await Fonts.registerFonts();
+  //   // Startup any jobs
+  //   jobScheduler.startup();
+  // });
 
-    // Startup any jobs
-    jobScheduler.startup();
-  }
+  // await appConfig.initializeFromConfigFile();
+
+  logInfo("Starting services...");
+
+  await Container.get(AppConfigService).load();
+  await Container.get(FontsService).load();
+  await Container.get(TemplatesService).load();
+  await Container.get(BackgroundContentService).load();
+  await Container.get(XmlTvService).load();
+  await Container.get(JobSchedulerService).load();
+
+  logInfo("Services successfully started");
+
+  await initializeApi();
 };
 
 initialize();

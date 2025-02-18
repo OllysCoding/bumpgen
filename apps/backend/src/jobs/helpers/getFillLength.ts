@@ -1,6 +1,6 @@
 import type { XmltvProgramme } from "@iptv/xmltv";
-import type { NextProgrammes } from "../../xmltv/index.js";
 import { logInfo } from "../../logger/index.js";
+import type { NextProgrammes } from "../../services/XmlTvService.js";
 
 const DEFAULT_LENGTH = 60;
 
@@ -39,7 +39,7 @@ export const getFillLength = (programmes: NextProgrammes): number => {
 
   if (length === 0) {
     logInfo(
-      `"*" lrngth option used but 0 seconds between start & end times, default to ${DEFAULT_LENGTH} seconds.`,
+      `"*" length option used but 0 seconds between start & end times, default to ${DEFAULT_LENGTH} seconds.`,
     );
     return DEFAULT_LENGTH;
   }

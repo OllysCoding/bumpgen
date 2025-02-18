@@ -1,25 +1,27 @@
-import {
-  fetchAndParseXmlTv,
-  getNextProgrammesForChannel,
-  getValueForConfiguredLang,
-} from "../xmltv/index.js";
 import { failure, isFailure, isSuccess, unwrap } from "../result/index.js";
 import { makeVideo } from "../video-generator/index.js";
-import { appConfig, type ChannelConfig } from "../config/app.js";
-import type { XmltvChannel, XmltvProgramme } from "@iptv/xmltv";
+import type { XmltvChannel } from "@iptv/xmltv";
 import { logDebug, logError, logInfo } from "../logger/index.js";
-import { Templates } from "../templates/index.js";
 import { getFillLength } from "./helpers/getFillLength.js";
 import { getBackgroundContentForChannel } from "./helpers/getBackgroundContentForChannel.js";
 import { getChannelConfig } from "./helpers/getChannelConfig.js";
 import { createProgrammeInfoFromProgrammes } from "../video-generator/helpers/createProgrammeInfoFromProgrammes.js";
+import {
+  AppConfigService,
+  type ChannelConfig,
+} from "../services/AppConfigService.js";
+import { Container } from "typedi";
+import { XmlTvService } from "../services/XmlTvService.js";
+import { BackgroundContentService } from "../services/BackgroundContentService.js";
+import { TemplatesService } from "../services/TemplatesService.js";
+import { LiveStatsService } from "../services/LiveStatsService.js";
 
 const channelTask = async (
   channel: XmltvChannel,
-  programmes: XmltvProgramme[],
   channelConfig: ChannelConfig,
 ): ReturnType<typeof makeVideo> => {
-  const nextProgrammes = getNextProgrammesForChannel(channel, programmes);
+  const nextProgrammes =
+    Container.get(XmlTvService).getNextProgrammesForChannel(channel);
   if (isFailure(nextProgrammes)) {
     return failure("Failed to get next programme", nextProgrammes.error);
   }
@@ -45,7 +47,9 @@ const channelTask = async (
     return backgroundContent;
   }
 
-  const template = Templates.getTemplateByName(channelConfig.template);
+  const template = Container.get(TemplatesService).getTemplateByName(
+    channelConfig.template,
+  );
   if (isFailure(template)) {
     return template;
   }
@@ -60,23 +64,42 @@ const channelTask = async (
     length,
     template: template.result,
     programmes: programmeInfo.result,
-    outputDir: appConfig.config.outputFolder,
+    outputDir: Container.get(AppConfigService).config.outputFolder,
     outputFileName: `channel-${channel.id}.mp4`,
     channelInfo: {
       id: channel.id,
-      name: unwrap(getValueForConfiguredLang(channel.displayName)),
+      name: unwrap(
+        Container.get(XmlTvService).getValueForConfiguredLang(
+          channel.displayName,
+        ),
+      ),
     },
     background: backgroundContent.result,
   });
 };
 
 export default {
-  getSchedule: () => `*/${appConfig.config.interval || 5} * * * *`,
+  getSchedule: () =>
+    `*/${Container.get(AppConfigService).config.interval} * * * *`,
   job: async () => {
     logInfo(`Starting main job...`);
-    const xmlTv = await fetchAndParseXmlTv(appConfig.config.xmlTvUrl);
-    if (isSuccess(xmlTv)) {
-      for (const channel of xmlTv.result.channels) {
+    const liveStatsService = Container.get(LiveStatsService);
+
+    const xmlTvResult = await Container.get(XmlTvService).run();
+    if (isSuccess(xmlTvResult)) {
+      // const backgroundContentResult = await cacheAllBackgroundContent();
+      const backgroundContentResult = await Container.get(
+        BackgroundContentService,
+      ).run();
+      if (isFailure(backgroundContentResult)) {
+        logInfo(
+          "Failed to fetch background content, will attempt to use existing items from cache",
+          backgroundContentResult.error,
+        );
+      }
+
+      for (const channel of Container.get(XmlTvService).channels) {
+        liveStatsService.running(channel.id);
         const channelConfig = getChannelConfig(channel.id);
         if (!channelConfig) {
           logDebug(`Skipping channel ${channel.id}, no config available`);
@@ -84,11 +107,7 @@ export default {
         }
 
         logInfo(`Started task for channel ${channel.id}`);
-        const result = await channelTask(
-          channel,
-          xmlTv.result.programmes,
-          channelConfig,
-        );
+        const result = await channelTask(channel, channelConfig);
         if (isFailure(result)) {
           logError(
             `Failed channel task for channel ${channel.id}`,
@@ -100,6 +119,8 @@ export default {
           );
         }
       }
+
+      liveStatsService.waiting();
     }
   },
 };

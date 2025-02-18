@@ -3,23 +3,27 @@ import { logDebug, logError, logInfo } from "../logger/index.js";
 import { failure, success, type Result } from "../result/index.js";
 import { glob } from "glob";
 
-import { appConfig, configFilePath } from "../config/app.js";
 import type { FabricTemplate } from "bumpgen-shared/types";
+import { Service } from "typedi";
+import { configFilePath, AppConfigService } from "./AppConfigService.js";
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export abstract class Templates {
-  private static _templates: Record<string, FabricTemplate> = {};
-  private static _failedTemplateFiles: Record<string, unknown> = {};
-  public static get templates() {
+@Service()
+export class TemplatesService {
+  private _templates: Record<string, FabricTemplate> = {};
+  private _failedTemplateFiles: Record<string, unknown> = {};
+  public get templates() {
     return this._templates;
   }
 
-  static registerTemplates = async (): Promise<Result<string[]>> => {
+  constructor(public appConfigService: AppConfigService) {}
+
+  private registerTemplates = async (): Promise<Result<string[]>> => {
     try {
       const defaultFiles = await glob("../../dist/templates/src/*.js", {
         absolute: true,
       });
-      const pluginFiles = appConfig.config.experimentalPluginsSupport
+      const pluginFiles = this.appConfigService.config
+        .experimentalPluginsSupport
         ? await glob(path.join(configFilePath, "/plugins/**/plugin.js"), {
             absolute: true,
           })
@@ -39,7 +43,7 @@ export abstract class Templates {
             throw new Error('Does not export a "load" function');
           }
 
-          module.load(Templates.registerTemplate);
+          module.load(this.registerTemplate);
 
           const newCount = Object.keys(this._templates).length;
           if (newCount >= currentCount) {
@@ -65,7 +69,7 @@ export abstract class Templates {
     }
   };
 
-  static registerTemplate = (name: string, template: FabricTemplate): void => {
+  private registerTemplate = (name: string, template: FabricTemplate): void => {
     if (this._templates[name]) {
       logError(`Failed to register template ${name}, already exists.`);
       return;
@@ -73,7 +77,7 @@ export abstract class Templates {
     this._templates[name] = template;
   };
 
-  static getTemplateByName = (name: string): Result<FabricTemplate> => {
+  public getTemplateByName = (name: string): Result<FabricTemplate> => {
     const maybeTemplate = this._templates[name];
     if (maybeTemplate) {
       return success(maybeTemplate);
@@ -82,5 +86,38 @@ export abstract class Templates {
         `Template with ${name} does not exist or is not registered`,
       );
     }
+  };
+
+  private onInitialized = async () => {
+    await this.registerTemplates();
+  };
+
+  public load = async () => {
+    this.appConfigService.addEventListener("onInitialized", this.onInitialized);
+
+    if (this.appConfigService.isInitialized) {
+      try {
+        const result = await this.registerTemplates();
+        return result;
+      } catch (err) {
+        failure("Failed to register templates", err);
+      }
+    }
+
+    return success(undefined);
+  };
+
+  public unload = () => {
+    this.appConfigService.removeEventListener(
+      "onInitialized",
+      this.onInitialized,
+    );
+
+    return Promise.resolve(success(undefined));
+  };
+
+  public run = () => {
+    // Do Nothing
+    return Promise.resolve(success(undefined));
   };
 }

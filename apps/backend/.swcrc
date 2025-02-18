@@ -2,7 +2,13 @@
   "jsc": {
     "parser": {
       "syntax": "typescript",
-      "tsx": false
+      "tsx": false,
+      "decorators": true
+    },
+    "target": "es2016",
+    "transform": {
+      "legacyDecorator": false,
+      "decoratorMetadata": true
     }
   }
 }

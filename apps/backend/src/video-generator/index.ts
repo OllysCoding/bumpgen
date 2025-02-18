@@ -9,7 +9,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { logDebug, logError } from "../logger/index.js";
 import { existsSync } from "node:fs";
-import { Fonts } from "../fonts/index.js";
+import { Container } from "typedi";
+import { FontsService } from "../services/FontsService.js";
 
 export interface ChannelInfo {
   id: string;
@@ -125,7 +126,8 @@ export const makeVideo = async (
       fps: 1,
       makeScene: async (fabric, canvas, anim, compose) => {
         await options.template(programmes, {
-          getFontProperties: (...args) => Fonts.getFontProperties(...args),
+          getFontProperties: (...args) =>
+            Container.get(FontsService).getFontProperties(...args),
           convertX: (val: number) => val * width,
           convertY: (val: number) => val * height,
         })(fabric, canvas, anim);

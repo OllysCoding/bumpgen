@@ -1,11 +1,14 @@
 import { glob } from "glob";
-import { appConfig, configFilePath } from "../config/app.js";
 import path from "path";
 import Ajv, { type JSONSchemaType } from "ajv";
 import { readFile } from "fs/promises";
 import { logDebug, logError, logInfo } from "../logger/index.js";
 import { registerFont } from "canvas";
 import type { GetFontProperties } from "bumpgen-shared/types";
+import type { BumpgenService } from "./types.js";
+import { Service } from "typedi";
+import { failure, success } from "../result/index.js";
+import { configFilePath, AppConfigService } from "./AppConfigService.js";
 
 const ajv = new Ajv();
 
@@ -42,9 +45,9 @@ const schema: JSONSchemaType<FontMap> = {
 
 const validate = ajv.compile(schema);
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export abstract class Fonts {
-  private static _fonts: Record<
+@Service()
+export class FontsService implements BumpgenService {
+  private _fonts: Record<
     string,
     {
       family: string;
@@ -53,11 +56,13 @@ export abstract class Fonts {
     }[]
   > = {};
 
-  static getFontProperties(
+  constructor(public appConfigService: AppConfigService) {}
+
+  public getFontProperties = (
     family: string,
     weight?: string,
     style?: string,
-  ): ReturnType<GetFontProperties> {
+  ): ReturnType<GetFontProperties> => {
     const weightOrDefault = weight ?? "normal";
     const styleOrDefault = style ?? "normal";
 
@@ -81,13 +86,13 @@ export abstract class Fonts {
         fontWeight: font.weight,
       };
     }
-  }
+  };
 
-  static async registerFonts() {
+  public registerFonts = async () => {
     const defaultFiles = await glob("./fonts/**/font-map.json", {
       absolute: true,
     });
-    const pluginFiles = appConfig.config.experimentalPluginsSupport
+    const pluginFiles = this.appConfigService.config.experimentalPluginsSupport
       ? await glob(path.join(configFilePath, "/plugins/**/font-map.json"), {
           absolute: true,
         })
@@ -134,5 +139,36 @@ export abstract class Fonts {
         logError(`Encountered error when parsing font map at ${file}`, err);
       }
     }
-  }
+  };
+
+  private onInitialized = () => this.registerFonts();
+
+  public load = async () => {
+    console.log(this.appConfigService);
+    this.appConfigService.addEventListener("onInitialized", this.onInitialized);
+
+    if (this.appConfigService.isInitialized) {
+      try {
+        await this.registerFonts();
+      } catch (err) {
+        failure("Failed to register fonts", err);
+      }
+    }
+
+    return success(undefined);
+  };
+
+  public unload = () => {
+    this.appConfigService.removeEventListener(
+      "onInitialized",
+      this.onInitialized,
+    );
+
+    return Promise.resolve(success(undefined));
+  };
+
+  public run = () => {
+    // Do Nothing
+    return Promise.resolve(success(undefined));
+  };
 }

@@ -1,48 +1,15 @@
-import ffmpeg from "fluent-ffmpeg";
-import { glob } from "glob";
-import {
-  appConfig,
-  type BackgroundContentConfig,
-  type ChannelConfig,
-} from "../../config/app.js";
-import {
-  failure,
-  isSuccess,
-  success,
-  type Result,
-} from "../../result/index.js";
+import { failure, success, type Result } from "../../result/index.js";
 import { logDebug, logError } from "../../logger/index.js";
 import { pickRandom } from "./pickRandom.js";
-import { isNotUndefined } from "bumpgen-shared/utils";
-import { resolve } from "node:path";
-
-const getRelativePath = (absolutePath: string): string => {
-  return absolutePath.slice(
-    resolve(appConfig.config.backgroundContentFolder).length + 1,
-  );
-};
-
-const getBackgroundContentConfig = (
-  filepath: string,
-): BackgroundContentConfig | undefined => {
-  return appConfig.config.backgroundContent?.[filepath];
-};
-
-const getLengthOfVideoFile = (filepath: string): Promise<Result<number>> => {
-  return new Promise((resolve) => {
-    ffmpeg.ffprobe(filepath, (err, data) => {
-      if (err) {
-        logError(`Failed to get file info ${filepath}`, err);
-        resolve(failure("Unknown ffprobe error", err));
-      } else if (data.format.duration) {
-        resolve(success(data.format.duration));
-      } else {
-        logError(`Ffprobe did not return duration for file ${filepath}`);
-        resolve(failure("ffprobe did not return duration"));
-      }
-    });
-  });
-};
+import {
+  AppConfigService,
+  type ChannelConfig,
+} from "../../services/AppConfigService.js";
+import { Container } from "typedi";
+import {
+  BackgroundContentService,
+  type BackgroundContent,
+} from "../../services/BackgroundContentService.js";
 
 const getFittingWindows = (
   windows: [number, number][],
@@ -55,33 +22,35 @@ const getFittingWindows = (
 };
 
 const getFilesWhichFitLength = async (
-  files: [string, string][],
-  length: number,
-): Promise<{ file: [string, string]; windows: [number, number][] }[]> => {
+  files: BackgroundContent[],
+  desiredLength: number,
+): Promise<{ file: BackgroundContent; windows: [number, number][] }[]> => {
   const filteredFiles: {
-    file: [string, string];
+    file: BackgroundContent;
     windows: [number, number][];
   }[] = [];
-  for (const [filepath, name] of files) {
-    const fileLength = await getLengthOfVideoFile(filepath);
-    if (isSuccess(fileLength)) {
-      const config = getBackgroundContentConfig(name);
+  for (const { fullPath, relativePath, length } of files) {
+    if (length) {
+      const config =
+        Container.get(AppConfigService).config.backgroundContent?.[
+          relativePath
+        ];
       if (config) {
         const windows = getFittingWindows(
           config.windows,
+          desiredLength,
           length,
-          fileLength.result,
         );
         if (windows.length > 0) {
           filteredFiles.push({
-            file: [filepath, name],
+            file: { fullPath, relativePath, length },
             windows,
           });
         }
-      } else if (fileLength.result >= length) {
+      } else if (length >= desiredLength) {
         filteredFiles.push({
-          file: [filepath, name],
-          windows: [[0, fileLength.result]],
+          file: { fullPath, relativePath, length },
+          windows: [[0, length]],
         });
       }
     }
@@ -99,28 +68,21 @@ export const getBackgroundContentForChannel = async (
     endSeconds: number;
   }>
 > => {
-  const allAvailableFiles: [string, string][] = (
-    await glob(`${appConfig.config.backgroundContentFolder}/*`, {
-      absolute: true,
-    })
-  )
-    .map(
-      (filename) => [filename, getRelativePath(filename)] as [string, string],
-    )
-    .filter(([, relative]) => isNotUndefined(relative));
+  const allAvailableFiles = Container.get(BackgroundContentService).files;
 
   if (allAvailableFiles.length === 0) {
     return failure("No background content available");
   }
 
-  let filteredFiles: [string, string][] = allAvailableFiles;
+  let filteredFiles: BackgroundContent[] = allAvailableFiles;
   if (Array.isArray(channelConfig.backgroundContent)) {
-    filteredFiles = allAvailableFiles.filter(([, name]) =>
-      channelConfig.backgroundContent.includes(name),
+    filteredFiles = allAvailableFiles.filter(({ relativePath }) =>
+      channelConfig.backgroundContent.includes(relativePath),
     );
     if (filteredFiles.length !== channelConfig.backgroundContent.length) {
       const missing = allAvailableFiles.filter(
-        ([, name]) => !channelConfig.backgroundContent.includes(name),
+        ({ relativePath }) =>
+          !channelConfig.backgroundContent.includes(relativePath),
       );
       logDebug(
         "Some files configured for channel are missing from background contents folder: ",
@@ -139,7 +101,9 @@ export const getBackgroundContentForChannel = async (
     return failure("No files which fit length");
   } else if (options.length !== filteredFiles.length) {
     const missing = filteredFiles.filter(
-      ([, name]) => options.findIndex(({ file }) => file[1] === name) === -1,
+      ({ relativePath }) =>
+        options.findIndex(({ file }) => file.relativePath === relativePath) ===
+        -1,
     );
     logDebug(
       "Some files were not long enough to be used for background content: ",
@@ -150,7 +114,7 @@ export const getBackgroundContentForChannel = async (
   const pickedFile = pickRandom(options);
   const [startSeconds, endSeconds] = pickRandom(pickedFile.windows);
   return success({
-    filePath: pickedFile.file[0],
+    filePath: pickedFile.file.fullPath,
     startSeconds,
     endSeconds,
   });

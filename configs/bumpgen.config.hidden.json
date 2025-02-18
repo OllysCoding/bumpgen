@@ -1,0 +1,46 @@
+{
+  "logLevel": "INFO",
+  "language": "en",
+  "experimentalPluginsSupport": false,
+  "interval": 1,
+  "xmlTvUrl": "https://iptv.local.ollyscoding.dev/iptv/xmltv.xml",
+  "outputFolder": "../../dev-output",
+  "backgroundContentFolder": "../../dev-background-content",
+  "channels": [
+    {
+      "channelIds": ["101.etv"],
+      "template": "centre-title-and-time",
+      "backgroundContent": ["background-1.mp4"],
+      "length": "*",
+      "resolution": {
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "channelIds": ["225.etv"],
+      "template": "left-panel-info",
+      "backgroundContent": "*",
+      "length": 5,
+      "resolution": {
+        "width": 2560,
+        "height": 1440
+      }
+    },
+    {
+      "channelIds": "*",
+      "template": "left-panel-next-five",
+      "backgroundContent": "*",
+      "length": 20,
+      "resolution": {
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  ],
+  "backgroundContent": {
+    "background-1.mp4": {
+      "windows": [[10, 2711]]
+    }
+  }
+}

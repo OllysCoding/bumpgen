@@ -4,18 +4,17 @@ import type { ProgrammeInfo } from "bumpgen-shared/types";
 import { isNotUndefined } from "bumpgen-shared/utils";
 
 import {
-  getBestIcon,
-  getOnScreenEpisodeNumber,
-  getValueForConfiguredLang,
-  type NextProgrammes,
-} from "../../xmltv/index.js";
-import {
   failure,
   isFailure,
   success,
   unwrap,
   type Result,
 } from "../../result/index.js";
+import {
+  XmlTvService,
+  type NextProgrammes,
+} from "../../services/XmlTvService.js";
+import { Container } from "typedi";
 
 export const createProgrammeInfoFromProgrammes = (
   programmes: NextProgrammes,
@@ -23,15 +22,16 @@ export const createProgrammeInfoFromProgrammes = (
   const createProgrammeInfo = (
     programme: XmltvProgramme,
   ): Result<ProgrammeInfo> => {
-    const title = getValueForConfiguredLang(programme.title);
+    const xmlTvService = Container.get(XmlTvService);
+    const title = xmlTvService.getValueForConfiguredLang(programme.title);
     if (isFailure(title)) {
       return failure("Title required to create overlay");
     }
 
-    const subtitle = getValueForConfiguredLang(programme.subTitle);
-    const episode = getOnScreenEpisodeNumber(programme.episodeNum);
-    const description = getValueForConfiguredLang(programme.desc);
-    const iconUrl = getBestIcon(programme.icon);
+    const subtitle = xmlTvService.getValueForConfiguredLang(programme.subTitle);
+    const episode = xmlTvService.getOnScreenEpisodeNumber(programme.episodeNum);
+    const description = xmlTvService.getValueForConfiguredLang(programme.desc);
+    const iconUrl = xmlTvService.getBestIcon(programme.icon);
 
     return success({
       title: title.result,

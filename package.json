@@ -2,7 +2,13 @@
   "name": "bumpgen",
   "version": "0.0.1",
   "type": "module",
-  "workspaces": ["apps/backend", "packages/templates", "packages/shared", "packages/example-plugin"],
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend",
+    "packages/templates",
+    "packages/shared",
+    "packages/example-plugin"
+  ],
   "scripts": {
     "dev": "npm run build --workspaces && npm run dev --workspace apps/backend"
   },

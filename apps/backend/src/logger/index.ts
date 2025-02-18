@@ -1,4 +1,5 @@
-import { appConfig } from "../config/app.js";
+import { Container } from "typedi";
+import { AppConfigService } from "../services/AppConfigService.js";
 
 export enum LogLevel {
   DEBUG = "DEBUG",
@@ -17,9 +18,12 @@ export const log = (
   message: string,
   ...args: unknown[]
 ): void => {
+  const appConfigService = Container.get(AppConfigService);
   if (
     logLevelMap[
-      appConfig.isInitialized ? appConfig.config.logLevel : LogLevel.DEBUG
+      appConfigService.isInitialized
+        ? appConfigService.config.logLevel
+        : LogLevel.DEBUG
     ].includes(level)
   ) {
     console.log(`[${new Date().toISOString()} - ${level}] ` + message, ...args);
