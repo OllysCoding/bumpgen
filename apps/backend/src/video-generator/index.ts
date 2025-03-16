@@ -33,6 +33,7 @@ export interface VideoOptions {
   height: number;
   length: number;
   template: FabricTemplate;
+  onGenerateStart?: () => void;
 }
 
 const randomInteger = (min: number, max: number) => {
@@ -108,6 +109,8 @@ export const makeVideo = async (
   if (generationCompleteTask === false) {
     return success("not-generated");
   }
+
+  if (options.onGenerateStart) options.onGenerateStart();
 
   const {
     width,

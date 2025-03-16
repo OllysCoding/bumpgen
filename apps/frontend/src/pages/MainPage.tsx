@@ -11,6 +11,7 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 import { BumpgenHeader } from "../components/Header";
 import { SuspenseErrorBoundary } from "../components/ErrorBoundary";
 import { BumpgenFooter } from "../components/Footer";
+import { useBreadcrumbs } from "../hooks/useBreadcrumbs";
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -21,6 +22,8 @@ export const MainPage: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const breadcrumbs = useBreadcrumbs();
 
   const menuItems: MenuItem[] = useMemo(() => {
     const items: MenuItem[] = [
@@ -51,7 +54,7 @@ export const MainPage: React.FC = () => {
       },
     ];
     return items;
-  }, []);
+  }, [navigate]);
 
   const activeItem = useMemo(() => {
     const searchKey =
@@ -72,6 +75,7 @@ export const MainPage: React.FC = () => {
           />
         </Layout.Sider>
         <Layout style={{ padding: "24px 24px" }}>
+          {breadcrumbs}
           <Layout.Content
             style={{
               padding: 24,

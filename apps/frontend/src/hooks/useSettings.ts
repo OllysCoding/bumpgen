@@ -81,7 +81,7 @@ const updateBackgrountContentConfig = async (data: {
   backgroundContentConfig: BackgroundContentConfig;
 }): Promise<Record<string, BackgroundContentConfig>> => {
   const response = await fetch(
-    `${V1_API_BASE}/background-content-configs/update`,
+    `${V1_API_BASE}/settings/background-content-configs/update`,
     {
       method: "POST",
       headers: {
@@ -103,7 +103,7 @@ const createBackgrountContentConfig = async (data: {
   backgroundContentConfig: BackgroundContentConfig;
 }): Promise<Record<string, BackgroundContentConfig>> => {
   const response = await fetch(
-    `${V1_API_BASE}/background-content-configs/create`,
+    `${V1_API_BASE}/settings/background-content-configs/create`,
     {
       method: "POST",
       headers: {

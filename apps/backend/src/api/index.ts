@@ -6,7 +6,7 @@ import isInitiliazedPlugin from "./plugins/isInitiliazed.js";
 import settingsRoutes from "./routes/settings.js";
 import cacheRoutes from "./routes/cache.js";
 import initializeRoutes from "./routes/initialize.js";
-import Container from "typedi";
+import { Container } from "typedi";
 import { LiveStatsService } from "../services/LiveStatsService.js";
 
 const V1_API_BASE = "/api/v1";
@@ -33,13 +33,16 @@ export const initializeApi = async () => {
   });
 
   fastify.server.on("upgrade", (req, socket, head) => {
+    console.log("HELLO WORLD!");
     console.log(req.url);
-    if (req.url === "/ws") {
+    if (req.url === "/api/v1/ws") {
+      console.log("upgrading...");
       Container.get(LiveStatsService).wss.handleUpgrade(
         req,
         socket,
         head,
         function done(ws) {
+          console.log("done!");
           Container.get(LiveStatsService).wss.emit("connection", ws, req);
         },
       );

@@ -75,6 +75,8 @@ const channelTask = async (
       ),
     },
     background: backgroundContent.result,
+    onGenerateStart: () =>
+      Container.get(LiveStatsService).running(channel.id, "generating"),
   });
 };
 
@@ -84,6 +86,7 @@ export default {
   job: async () => {
     logInfo(`Starting main job...`);
     const liveStatsService = Container.get(LiveStatsService);
+    liveStatsService.start();
 
     const xmlTvResult = await Container.get(XmlTvService).run();
     if (isSuccess(xmlTvResult)) {
@@ -99,10 +102,11 @@ export default {
       }
 
       for (const channel of Container.get(XmlTvService).channels) {
-        liveStatsService.running(channel.id);
+        liveStatsService.running(channel.id, "starting");
         const channelConfig = getChannelConfig(channel.id);
         if (!channelConfig) {
           logDebug(`Skipping channel ${channel.id}, no config available`);
+          liveStatsService.channelResult(channel.id, 0, "not-configured");
           continue;
         }
 
@@ -113,7 +117,12 @@ export default {
             `Failed channel task for channel ${channel.id}`,
             result.error,
           );
+          liveStatsService.channelResult(channel.id, 0, "error");
         } else {
+          const resultString =
+            result.result === "generated" ? "generated" : "up-to-date";
+          liveStatsService.channelResult(channel.id, 0, resultString);
+
           logInfo(
             `Completed task for channel ${channel.id} (Video ${result.result.replace("-", " ")})`,
           );

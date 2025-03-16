@@ -15,15 +15,23 @@ import { WebSocketServer, WebSocket } from "ws";
 
 import { Service } from "typedi";
 import type { BumpgenService } from "./types";
-import { success } from "../result";
-import { AppConfigService } from "./AppConfigService";
-import type { JobSchedulerService } from "./JobSchedulerService";
+import { success } from "../result/index.js";
+import { AppConfigService } from "./AppConfigService.js";
+import { JobSchedulerService } from "./JobSchedulerService.js";
+import { XmlTvService } from "./XmlTvService.js";
 
 type StatusEvent =
   | {
+      status: "starting"; // Fetching XML TV Data
+      data: Record<string, never>;
+    }
+  | {
       status: "running";
       data: {
+        numChannels: number;
+        channelIndex: number;
         channelId: string;
+        task: "starting" | "generating";
       };
     }
   | {
@@ -35,12 +43,22 @@ type StatusEvent =
     };
 
 interface StatsEvent {
-  lastRun: number;
+  lastRun: {
+    time: number;
+    channelIds: string[];
+    channelResults: Record<
+      string,
+      {
+        duration: number;
+        result: "generated" | "up-to-date" | "error" | "not-configured";
+      }
+    >;
+  };
 }
 
 type Event =
-  | { name: "status"; event: StatusEvent }
-  | { name: "stats"; event: StatsEvent };
+  | { name: "status"; event: StatusEvent; id: number }
+  | { name: "stats"; event: StatsEvent; id: number };
 
 @Service()
 export class LiveStatsService implements BumpgenService {
@@ -50,44 +68,121 @@ export class LiveStatsService implements BumpgenService {
     return this._wss;
   }
 
-  private lastStatsEvent: Event | undefined;
+  private idCount = 0;
+
+  private latestStatusEvent: StatusEvent | undefined;
+  private latestStatsEvent: StatsEvent | undefined;
 
   constructor(
     public appConfigService: AppConfigService,
     public jobSchedulerService: JobSchedulerService,
+    public xmlTvService: XmlTvService,
   ) {
     this._wss = new WebSocketServer({ noServer: true });
   }
 
-  public running = (channelId: string) => {
-    const event: Event = {
-      name: "status",
-      event: {
-        status: "running",
-        data: {
-          channelId,
-        },
+  public channelResult = (
+    channelId: string,
+    duration: number,
+    result: "generated" | "up-to-date" | "error" | "not-configured",
+  ) => {
+    const event: StatsEvent = this.latestStatsEvent ?? {
+      lastRun: {
+        time: new Date().getTime(),
+        channelIds: this.xmlTvService.channels.map((c) => c.id),
+        channelResults: {},
       },
     };
-    this.emitEvent(event);
-    this.lastStatsEvent = event;
+
+    this.emitStatsEvent({
+      ...event,
+      lastRun: {
+        ...event.lastRun,
+        channelResults: {
+          ...event.lastRun.channelResults,
+          [channelId]: {
+            duration,
+            result,
+          },
+        },
+      },
+    });
+  };
+
+  public xmlTvFetched = () => {
+    if (this.latestStatsEvent) {
+      this.emitStatsEvent({
+        ...this.latestStatsEvent,
+        lastRun: {
+          ...this.latestStatsEvent.lastRun,
+          channelIds: this.xmlTvService.channels.map((c) => c.id),
+        },
+      });
+    }
+  };
+
+  public start = () => {
+    this.emitStatusEvent({
+      status: "starting",
+      data: {},
+    });
+
+    this.emitStatsEvent({
+      lastRun: {
+        time: new Date().getTime(),
+        channelIds: this.xmlTvService.channels.map((c) => c.id),
+        channelResults: {},
+      },
+    });
+  };
+
+  public running = (channelId: string, task: "generating" | "starting") => {
+    this.emitStatusEvent({
+      status: "running",
+      data: {
+        numChannels: this.xmlTvService.channels.length,
+        channelIndex: this.xmlTvService.channels.findIndex(
+          (c) => c.id === channelId,
+        ),
+        channelId,
+        task,
+      },
+    });
   };
 
   public waiting = () => {
     const nextRun = this.jobSchedulerService.getNextRunTime("main")?.getTime();
     if (nextRun) {
-      const event: Event = {
-        name: "status",
-        event: {
-          status: "waiting",
-          data: {
-            nextRun,
-          },
+      this.emitStatusEvent({
+        status: "waiting",
+        data: {
+          nextRun,
         },
-      };
-      this.emitEvent(event);
-      this.lastStatsEvent = event;
+      });
     }
+  };
+
+  private getNextId = () => {
+    this.idCount += 1;
+    return this.idCount;
+  };
+
+  private emitStatusEvent = (event: StatusEvent, saveAsLatest = true) => {
+    this.emitEvent({
+      name: "status",
+      id: this.getNextId(),
+      event,
+    });
+    if (saveAsLatest) this.latestStatusEvent = event;
+  };
+
+  private emitStatsEvent = (event: StatsEvent, saveAsLatest = true) => {
+    this.emitEvent({
+      name: "stats",
+      id: this.getNextId(),
+      event,
+    });
+    if (saveAsLatest) this.latestStatsEvent = event;
   };
 
   private emitEvent = (event: Event) => {
@@ -99,7 +194,22 @@ export class LiveStatsService implements BumpgenService {
   };
 
   private onConnect = (client: WebSocket) => {
-    client.send(JSON.stringify(this.lastStatsEvent));
+    if (this.latestStatusEvent) {
+      const event: Event = {
+        name: "status",
+        id: 0,
+        event: this.latestStatusEvent,
+      };
+      client.send(JSON.stringify(event));
+    }
+    if (this.latestStatsEvent) {
+      const event: Event = {
+        name: "stats",
+        id: 1,
+        event: this.latestStatsEvent,
+      };
+      client.send(JSON.stringify(event));
+    }
   };
 
   load = () => {

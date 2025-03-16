@@ -7,7 +7,6 @@ import {
   App,
   Button,
   Form,
-  Input,
   InputNumber,
   Select,
   Space,
@@ -15,6 +14,7 @@ import {
 } from "antd";
 import { useSuspenseCache } from "../../hooks/useCache";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { useAppNavigation } from "../../hooks/useAppNavigation";
 
 type FieldType = {
   filepath: string;
@@ -33,6 +33,7 @@ const AddOrEditBackgroundContent: React.FC = () => {
   const cache = useSuspenseCache();
 
   const { filepath } = useParams<"filepath">();
+  const { navigateToBackgroundContent } = useAppNavigation();
 
   const { message } = App.useApp();
   const [form] = Form.useForm<FieldType>();
@@ -58,7 +59,7 @@ const AddOrEditBackgroundContent: React.FC = () => {
     return Object.values(cache.backgroundContent).filter(
       (file) => !backgroundContentConfigs[file.relativePath],
     );
-  }, [backgroundContentConfigs]);
+  }, [backgroundContentConfigs, cache.backgroundContent]);
 
   const backgroundContentConfig: BackgroundContentConfig | undefined = filepath
     ? backgroundContentConfigs[filepath]
@@ -74,6 +75,8 @@ const AddOrEditBackgroundContent: React.FC = () => {
             windows: data.windows.map(({ start, end }) => [start, end]),
           },
         });
+        message.success(`Updated config for '${filepath}'!`);
+        navigateToBackgroundContent();
       } else if (data.filepath) {
         // Create
         await createBackgroundContentConfig({
@@ -82,6 +85,8 @@ const AddOrEditBackgroundContent: React.FC = () => {
             windows: data.windows.map(({ start, end }) => [start, end]),
           },
         });
+        message.success(`Created config for '${filepath}'!`);
+        navigateToBackgroundContent();
       } else {
         throw Error("Not creating or updating");
       }

@@ -11,6 +11,7 @@ import { TemplatesService } from "./services/TemplatesService.js";
 import { XmlTvService } from "./services/XmlTvService.js";
 import { JobSchedulerService } from "./services/JobSchedulerService.js";
 import { logInfo } from "./logger/index.js";
+import { LiveStatsService } from "./services/LiveStatsService.js";
 
 const initialize = async () => {
   // appConfig.onInitialised(async () => {
@@ -31,6 +32,7 @@ const initialize = async () => {
   await Container.get(BackgroundContentService).load();
   await Container.get(XmlTvService).load();
   await Container.get(JobSchedulerService).load();
+  await Container.get(LiveStatsService).load();
 
   logInfo("Services successfully started");
 

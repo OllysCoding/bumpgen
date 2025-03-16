@@ -9,6 +9,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      "/api/v1/ws": {
+        target: "ws://localhost:4000",
+        ws: true,
+      },
       "/api": "http://localhost:4000",
     },
   },
