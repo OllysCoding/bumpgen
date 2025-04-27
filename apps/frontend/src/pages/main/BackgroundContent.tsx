@@ -1,8 +1,13 @@
 import { Suspense, useMemo } from "react";
 import { Loading } from "../../components/Loading";
 import { useRequireInitialization } from "../../hooks/useRequireInitialization";
-import { Button, Space, Table, TableProps, Tag, Typography } from "antd";
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { App, Button, Space, Table, TableProps, Tag, Typography } from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ExclamationCircleFilled,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { useSettings } from "../../hooks/useSettings";
 import { useNavigate } from "react-router";
 
@@ -15,6 +20,25 @@ const BackgroundContentButtons: React.FC<{
   content: BackgroundContentTable;
 }> = ({ content }) => {
   const navigate = useNavigate();
+
+  const { modal, message } = App.useApp();
+  const { deleteBackgroundContentConfig } = useSettings();
+
+  const deleteItem = (filePath: string) => {
+    modal.confirm({
+      title: `Delete config for "${filePath}"?`,
+      icon: <ExclamationCircleFilled />,
+      onOk: async () => {
+        try {
+          await deleteBackgroundContentConfig({ filePath });
+        } catch (err) {
+          console.error(err);
+          message.error("Something went wrong when deleting");
+        }
+      },
+    });
+  };
+
   return (
     <Space style={{ width: "100%", justifyContent: "flex-end" }}>
       <Button
@@ -24,7 +48,11 @@ const BackgroundContentButtons: React.FC<{
       >
         Edit
       </Button>
-      <Button icon={<DeleteOutlined />} danger></Button>
+      <Button
+        icon={<DeleteOutlined />}
+        danger
+        onClick={() => deleteItem(content.filepath)}
+      ></Button>
     </Space>
   );
 };

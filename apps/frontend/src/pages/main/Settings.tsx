@@ -13,7 +13,7 @@ import {
   Switch,
   Typography,
 } from "antd";
-import { DOCKER_DEFAULTS } from "../setup/Setup";
+import { DOCKER_DEFAULTS } from "../setup/defaults";
 
 const Settings: React.FC = () => {
   useRequireInitialization({ require: "to-be-initialized" });

@@ -36,13 +36,11 @@ export const initializeApi = async () => {
     console.log("HELLO WORLD!");
     console.log(req.url);
     if (req.url === "/api/v1/ws") {
-      console.log("upgrading...");
       Container.get(LiveStatsService).wss.handleUpgrade(
         req,
         socket,
         head,
         function done(ws) {
-          console.log("done!");
           Container.get(LiveStatsService).wss.emit("connection", ws, req);
         },
       );

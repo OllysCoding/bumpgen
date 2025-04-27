@@ -267,14 +267,32 @@ export class AppConfigService implements BumpgenService {
     );
     if (isFailure(isValid)) return isValid;
 
-    const updateChannels = this.config.channels.map((c, i) => {
+    const updatedChannels = this.config.channels.map((c, i) => {
       if (i === index) return channelConfig;
       return c;
     });
 
     return this.updateConfig({
       ...this.config,
-      channels: updateChannels,
+      channels: updatedChannels,
+    });
+  };
+
+  public deleteChannelConfig = async (
+    index: number,
+  ): Promise<Result<AppConfig>> => {
+    if (this.config.channels[index] === undefined) {
+      return failure("No channel config exists at index " + index);
+    }
+
+    const updatedChannels = this.config.channels.filter((c, i) => {
+      if (i === index) return false;
+      return true;
+    });
+
+    return this.updateConfig({
+      ...this.config,
+      channels: updatedChannels,
     });
   };
 
@@ -311,6 +329,24 @@ export class AppConfigService implements BumpgenService {
         ...(this.config.backgroundContent ?? {}),
         [filePath]: backgroundContentConfig,
       },
+    });
+  };
+
+  public deleteBackgroundContentConfig = async (
+    filePath: string,
+  ): Promise<Result<AppConfig>> => {
+    if (this.config.backgroundContent?.[filePath] === undefined) {
+      return failure(
+        "A background content config must exist for file" + filePath,
+      );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [filePath]: _, ...remaining } = this.config.backgroundContent ?? {};
+
+    return this.updateConfig({
+      ...this.config,
+      backgroundContent: remaining,
     });
   };
 

@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ChannelsWithSuspense } from "./main/Channels";
 import { BackgroundContentWithSuspense } from "./main/BackgroundContent";
 import { AddOrEditBackgroundContentWithSuspense } from "./main/AddOrEditBackgroundContent";
+import { AddOrEditChannelConfigWithSuspense } from "./main/AddOrEditChannelConfig";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,14 @@ export const App: React.FC = () => {
                 <Route
                   path="channels"
                   element={<ChannelsWithSuspense />}
+                ></Route>
+                <Route
+                  path="channels/add"
+                  element={<AddOrEditChannelConfigWithSuspense />}
+                ></Route>
+                <Route
+                  path="channels/edit/:id"
+                  element={<AddOrEditChannelConfigWithSuspense />}
                 ></Route>
                 <Route
                   path="background-content"

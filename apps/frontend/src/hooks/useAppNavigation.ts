@@ -10,6 +10,19 @@ export const useAppNavigation = () => {
     () => navigate(paths.settings),
     [navigate],
   );
+  const navigateToChannels = useCallback(
+    () => navigate(paths.channels.list),
+    [navigate],
+  );
+  const navigateToAddChannelConfig = useCallback(
+    () => navigate(paths.channels.add),
+    [navigate],
+  );
+  const navigateToEditChannelConfig = useCallback(
+    (index: number) =>
+      navigate(paths.channels.edit.replace("*", index.toString())),
+    [navigate],
+  );
   const navigateToBackgroundContent = useCallback(
     () => navigate(paths.backgroundContent.list),
     [navigate],
@@ -26,6 +39,9 @@ export const useAppNavigation = () => {
   return {
     navigateToHome,
     navigateToSettings,
+    navigateToChannels,
+    navigateToAddChannelConfig,
+    navigateToEditChannelConfig,
     navigateToBackgroundContent,
     navigateToAddBackgroundContent,
     navigateToEditBackgroundContent,

@@ -59,7 +59,9 @@ export const MainPage: React.FC = () => {
   const activeItem = useMemo(() => {
     const searchKey =
       location.pathname === "/" ? "dashboard" : location.pathname.slice(1);
-    return menuItems.find((item) => searchKey === item?.key)?.key as string;
+    return menuItems.find(
+      (item) => item?.key && searchKey.startsWith(item.key as string),
+    )?.key as string;
   }, [location.pathname, menuItems]);
 
   return (

@@ -6,11 +6,7 @@ import {
   InitializeData,
   useAppInitialization,
 } from "../../hooks/useInitialization";
-
-export const DOCKER_DEFAULTS = {
-  outputFolder: "/output",
-  backgroundContentFolder: "/background-content",
-};
+import { DOCKER_DEFAULTS } from "./defaults";
 
 type FieldType = InitializeData & { useDockerDefaults: "yes" | "no" };
 

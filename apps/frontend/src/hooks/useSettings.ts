@@ -30,95 +30,125 @@ export type BackgroundContentConfig = {
   windows: [number, number][];
 };
 
-const fetchAppSettings = async (): Promise<Settings> => {
-  const response = await fetch(`${V1_API_BASE}/settings`);
+const getWrapper = async <T>({
+  path,
+  errMessage,
+}: {
+  path: string;
+  errMessage: string;
+}): Promise<T> => {
+  const response = await fetch(`${V1_API_BASE}${path}`);
   if (!response.ok) {
-    throw Error("Failed to fetch app settings");
+    throw Error(errMessage);
   }
 
-  return (await response.json()) as Settings;
+  return (await response.json()) as T;
 };
-const updateAppSettings = async (newSettings: Settings): Promise<Settings> => {
-  const response = await fetch(`${V1_API_BASE}/settings`, {
+
+const postWrapper = async <T>({
+  path,
+  errMessage,
+  body,
+}: {
+  path: string;
+  errMessage: string;
+  body: unknown;
+}): Promise<T> => {
+  const response = await fetch(`${V1_API_BASE}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(newSettings),
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw Error(errMessage);
+  }
+
+  return (await response.json()) as T;
+};
+
+const fetchAppSettings = async (): Promise<Settings> =>
+  getWrapper({
+    path: "/settings",
+    errMessage: "Failed to fetch app settings",
   });
 
-  if (!response.ok) {
-    throw Error("Failed to initialize app");
-  }
+const updateAppSettings = async (newSettings: Settings): Promise<Settings> =>
+  postWrapper({
+    path: "/settings",
+    errMessage: "Failed to update settings",
+    body: newSettings,
+  });
 
-  return (await response.json()) as Settings;
-};
+const fetchChannelConfigs = async (): Promise<ChannelConfig[]> =>
+  getWrapper({
+    path: "/settings/channel-configs",
+    errMessage: "Failed to fetch app channel configs",
+  });
 
-const fetchChannelConfigs = async (): Promise<ChannelConfig[]> => {
-  const response = await fetch(`${V1_API_BASE}/settings/channel-configs`);
-  if (!response.ok) {
-    throw Error("Failed to fetch channel configs");
-  }
+const updateChannelConfigFn = async (data: {
+  index: number;
+  channelConfig: ChannelConfig;
+}): Promise<ChannelConfig[]> =>
+  postWrapper({
+    path: "/settings/channel-configs/update",
+    errMessage: "Failed update channel config",
+    body: data,
+  });
 
-  return (await response.json()) as ChannelConfig[];
-};
+const deleteChannelConfigFn = async (index: number): Promise<ChannelConfig[]> =>
+  postWrapper({
+    path: "/settings/channel-configs/delete",
+    errMessage: "Failed delete channel config",
+    body: { index },
+  });
+
+const createChannelConfigFn = async (
+  config: ChannelConfig,
+): Promise<ChannelConfig[]> =>
+  postWrapper({
+    path: "/settings/channel-configs/create",
+    errMessage: "Failed create channel config",
+    body: config,
+  });
 
 const fetchBackgroundContentConfigs = async (): Promise<
   Record<string, BackgroundContentConfig>
-> => {
-  const response = await fetch(
-    `${V1_API_BASE}/settings/background-content-configs`,
-  );
-  if (!response.ok) {
-    throw Error("Failed to fetch app background contnent");
-  }
+> =>
+  getWrapper({
+    path: "/settings/background-content-configs",
+    errMessage: "Failed to fetch app background content",
+  });
 
-  return (await response.json()) as Record<string, BackgroundContentConfig>;
-};
-
-const updateBackgrountContentConfig = async (data: {
+const updateBackgroundContentConfigFn = async (data: {
   filePath: string;
   backgroundContentConfig: BackgroundContentConfig;
-}): Promise<Record<string, BackgroundContentConfig>> => {
-  const response = await fetch(
-    `${V1_API_BASE}/settings/background-content-configs/update`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    },
-  );
+}): Promise<Record<string, BackgroundContentConfig>> =>
+  postWrapper({
+    path: "/settings/background-content-configs/update",
+    errMessage: "Failed update background content config",
+    body: data,
+  });
 
-  if (!response.ok) {
-    throw Error("Failed update background content config");
-  }
+const deleteBackgroundContentConfigFn = async (data: {
+  filePath: string;
+}): Promise<Record<string, BackgroundContentConfig>> =>
+  postWrapper({
+    path: "/settings/background-content-configs/delete",
+    errMessage: "Failed delete background content config",
+    body: data,
+  });
 
-  return (await response.json()) as Record<string, BackgroundContentConfig>;
-};
-
-const createBackgrountContentConfig = async (data: {
+const createBackgrountContentConfigFn = async (data: {
   filePath: string;
   backgroundContentConfig: BackgroundContentConfig;
-}): Promise<Record<string, BackgroundContentConfig>> => {
-  const response = await fetch(
-    `${V1_API_BASE}/settings/background-content-configs/create`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    },
-  );
-
-  if (!response.ok) {
-    throw Error("Failed create background content config");
-  }
-
-  return (await response.json()) as Record<string, BackgroundContentConfig>;
-};
+}): Promise<Record<string, BackgroundContentConfig>> =>
+  postWrapper({
+    path: "/settings/background-content-configs/create",
+    errMessage: "Failed create background content config",
+    body: data,
+  });
 
 type UseSettings = () => {
   settings: Settings;
@@ -126,6 +156,15 @@ type UseSettings = () => {
   settingsIsUpdating: boolean;
 
   channelConfigs: ChannelConfig[];
+  updateChannelConfig: (data: {
+    index: number;
+    channelConfig: ChannelConfig;
+  }) => Promise<ChannelConfig[]>;
+  createChannelConfig: (data: ChannelConfig) => Promise<ChannelConfig[]>;
+  deleteChannelConfig: (index: number) => Promise<ChannelConfig[]>;
+  channelConfigIsUpdating: boolean;
+  channelConfigIsCreating: boolean;
+  channelConfigIsDeleting: boolean;
 
   backgroundContentConfigs: Record<string, BackgroundContentConfig>;
   updateBackgroundContentConfig: (data: {
@@ -136,8 +175,12 @@ type UseSettings = () => {
     filePath: string;
     backgroundContentConfig: BackgroundContentConfig;
   }) => Promise<Record<string, BackgroundContentConfig>>;
+  deleteBackgroundContentConfig: (data: {
+    filePath: string;
+  }) => Promise<Record<string, BackgroundContentConfig>>;
   backgroundContentIsUpdating: boolean;
   backgroundContentIsCreating: boolean;
+  backgroundContentIsDeleting: boolean;
 };
 
 export const useSettings: UseSettings = () => {
@@ -165,21 +208,70 @@ export const useSettings: UseSettings = () => {
     });
 
   const {
+    mutateAsync: updateChannelConfig,
+    isPending: channelConfigIsUpdating,
+  } = useMutation({
+    mutationFn: updateChannelConfigFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["channel-configs"],
+      });
+    },
+  });
+
+  const {
     mutateAsync: updateBackgroundContentConfig,
     isPending: backgroundContentIsUpdating,
   } = useMutation({
-    mutationFn: updateBackgrountContentConfig,
+    mutationFn: updateBackgroundContentConfigFn,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["background-content-configs"],
       });
     },
   });
+
+  const {
+    mutateAsync: createChannelConfig,
+    isPending: channelConfigIsCreating,
+  } = useMutation({
+    mutationFn: createChannelConfigFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["channel-configs"],
+      });
+    },
+  });
+
   const {
     mutateAsync: createBackgroundContentConfig,
     isPending: backgroundContentIsCreating,
   } = useMutation({
-    mutationFn: createBackgrountContentConfig,
+    mutationFn: createBackgrountContentConfigFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["background-content-configs"],
+      });
+    },
+  });
+
+  const {
+    mutateAsync: deleteChannelConfig,
+    isPending: channelConfigIsDeleting,
+  } = useMutation({
+    mutationFn: deleteChannelConfigFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["channel-configs"],
+      });
+    },
+  });
+
+  const {
+    mutateAsync: deleteBackgroundContentConfig,
+    isPending: backgroundContentIsDeleting,
+  } = useMutation({
+    mutationFn: deleteBackgroundContentConfigFn,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["background-content-configs"],
@@ -194,8 +286,16 @@ export const useSettings: UseSettings = () => {
     channelConfigs,
     backgroundContentConfigs,
     updateBackgroundContentConfig,
+    updateChannelConfig,
     createBackgroundContentConfig,
+    createChannelConfig,
+    deleteBackgroundContentConfig,
+    deleteChannelConfig,
     backgroundContentIsUpdating,
+    channelConfigIsUpdating,
     backgroundContentIsCreating,
+    channelConfigIsCreating,
+    backgroundContentIsDeleting,
+    channelConfigIsDeleting,
   };
 };

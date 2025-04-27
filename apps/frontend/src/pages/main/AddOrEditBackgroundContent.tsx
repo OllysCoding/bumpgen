@@ -43,7 +43,7 @@ const AddOrEditBackgroundContent: React.FC = () => {
     setIsFormTouched(form.isFieldsTouched());
   }, form);
 
-  const selectedFile = Form.useWatch("filepath", form);
+  const selectedFile = Form.useWatch("filepath", form) ?? filepath;
 
   const backgroundContent = useMemo(() => {
     return cache.backgroundContent.find(

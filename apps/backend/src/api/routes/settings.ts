@@ -19,6 +19,12 @@ const UpdateChannelConfigSchema = Type.Object({
 
 type UpdateChannelConfig = Static<typeof UpdateChannelConfigSchema>;
 
+const DeletehannelConfigSchema = Type.Object({
+  index: Type.Number(),
+});
+
+type DeleteChannelConfig = Static<typeof DeletehannelConfigSchema>;
+
 const AddOrUpdateBackgroundContentConfigSchema = Type.Object({
   filePath: Type.String(),
   backgroundContentConfig: BackgroundContentConfigSchema,
@@ -26,6 +32,14 @@ const AddOrUpdateBackgroundContentConfigSchema = Type.Object({
 
 type AddOrUpdateBackgroundContentConfig = Static<
   typeof AddOrUpdateBackgroundContentConfigSchema
+>;
+
+const DeleteBackgroundContentConfigSchema = Type.Object({
+  filePath: Type.String(),
+});
+
+type DeleteBackgroundContentConfig = Static<
+  typeof DeleteBackgroundContentConfigSchema
 >;
 
 const SettingsSchema = Type.Pick(AppConfigSchema, [
@@ -145,6 +159,30 @@ const routes = async (
     },
   );
 
+  fastify.post<{ Body: DeleteChannelConfig; Reply: AppConfig["channels"] }>(
+    "/channel-configs/delete",
+    {
+      schema: {
+        body: DeletehannelConfigSchema,
+        response: { 200: AppConfigSchema.properties.channels },
+      },
+    },
+    async (request, reply) => {
+      const appConfigService = Container.get(AppConfigService);
+      const result = await appConfigService.deleteChannelConfig(
+        request.body.index,
+      );
+      if (isFailure(result)) {
+        reply.sendError(
+          ApiErrorType.UNABLE_TO_UPDATE_RESOURCE,
+          result.error.message,
+        );
+      } else {
+        reply.status(200).send(appConfigService.config.channels);
+      }
+    },
+  );
+
   fastify.get<{ Reply: AppConfig["backgroundContent"] }>(
     "/background-content-configs",
     {
@@ -202,6 +240,33 @@ const routes = async (
       const result = await appConfigService.updateBackgroundContentConfig(
         request.body.filePath,
         request.body.backgroundContentConfig,
+      );
+      if (isFailure(result)) {
+        reply.sendError(
+          ApiErrorType.UNABLE_TO_ADD_RESOURCE,
+          result.error.message,
+        );
+      } else {
+        reply.status(200).send(appConfigService.config.backgroundContent);
+      }
+    },
+  );
+
+  fastify.post<{
+    Body: DeleteBackgroundContentConfig;
+    Reply: AppConfig["backgroundContent"];
+  }>(
+    "/background-content-configs/delete",
+    {
+      schema: {
+        body: DeleteBackgroundContentConfigSchema,
+        response: { 200: AppConfigSchema.properties.backgroundContent },
+      },
+    },
+    async (request, reply) => {
+      const appConfigService = Container.get(AppConfigService);
+      const result = await appConfigService.deleteBackgroundContentConfig(
+        request.body.filePath,
       );
       if (isFailure(result)) {
         reply.sendError(
