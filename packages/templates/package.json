@@ -19,7 +19,7 @@
   "description": "",
   "dependencies": {
     "canvas": "^2.11.2",
-    "fabric": "^6.5.4",
+    "fabric": "^6.7.0",
     "gsap": "^3.12.5"
   },
   "devDependencies": {

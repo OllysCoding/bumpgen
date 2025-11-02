@@ -1,5 +1,5 @@
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
-import { Button, Watermark, Typography } from "antd";
+import { Button, Typography } from "antd";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 
 type Props = {

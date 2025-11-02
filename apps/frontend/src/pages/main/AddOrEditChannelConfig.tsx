@@ -1,7 +1,7 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useMemo } from "react";
 import { Loading } from "../../components/Loading";
 import { useRequireInitialization } from "../../hooks/useRequireInitialization";
-import { useSettings } from "../../hooks/useSettings";
+import { ChannelConfig, useSettings } from "../../hooks/useSettings";
 import { useSuspenseCache } from "../../hooks/useCache";
 import { useAppNavigation } from "../../hooks/useAppNavigation";
 import { useParams } from "react-router";
@@ -10,6 +10,7 @@ import {
   Button,
   Flex,
   Form,
+  InputNumber,
   Select,
   Space,
   Switch,
@@ -29,17 +30,46 @@ type FieldType = {
   height: number;
 };
 
+const channelIsInUse = (
+  channelId: string,
+  channels: ChannelConfig[],
+): boolean => {
+  return !!channels.find((channel) => channel.channelIds.includes(channelId));
+};
+
 const AddOrEditChannelConfig: React.FC = () => {
   useRequireInitialization({ require: "to-be-initialized" });
   const { navigateToChannels } = useAppNavigation();
 
   const {
-    channelConfigs,
+    channelConfigs: allChannelConfigs,
     updateChannelConfig,
     channelConfigIsUpdating,
     createChannelConfig,
     channelConfigIsCreating,
   } = useSettings();
+
+  const params = useParams<"id">();
+
+  const configIndex = useMemo(() => {
+    if (params.id === undefined) return undefined;
+    const parsed = parseInt(params.id);
+    if (Number.isNaN(parsed)) return undefined;
+    return parsed;
+  }, [params.id]);
+
+  const channelConfig = useMemo(
+    () =>
+      configIndex !== undefined ? allChannelConfigs[configIndex] : undefined,
+    [configIndex, allChannelConfigs],
+  );
+
+  const channelConfigs = useMemo(() => {
+    if (channelConfig) {
+      return allChannelConfigs.filter((_, i) => i !== configIndex);
+    }
+    return allChannelConfigs;
+  }, [channelConfig, allChannelConfigs, configIndex]);
 
   const useAllChannelsAvailable = useMemo(() => {
     return (
@@ -56,21 +86,25 @@ const AddOrEditChannelConfig: React.FC = () => {
       return {
         label: `${channel.name} - ${channel.id}`,
         value: channel.id,
+        disabled: channelIsInUse(channel.id, channelConfigs),
       };
     });
-  }, [cache.channels]);
+  }, [cache.channels, channelConfigs]);
 
   const { message } = App.useApp();
   const [form] = Form.useForm<FieldType>();
   const useAllChannels = Form.useWatch("useAllChannels", form);
+  const fitLengthToGap = Form.useWatch("fitLengthToGap", form);
+  const useAllBackgroundContent = Form.useWatch(
+    "useAllBackgroundContent",
+    form,
+  );
 
   const { ResetButton, isTouched } = useFormReset({ form });
 
-  const { index: configIndex } = useParams<"index">();
-
   const onFinish = async (data: FieldType) => {
     try {
-      if (configIndex !== undefined) {
+      if (channelConfig !== undefined) {
         // Update
         await updateChannelConfig({
           index: Number(configIndex),
@@ -109,7 +143,7 @@ const AddOrEditChannelConfig: React.FC = () => {
   return (
     <>
       <Typography.Title level={2}>
-        {configIndex ? `Edit channel config` : "Add a new channel config"}
+        {channelConfig ? `Edit channel config` : "Add a new channel config"}
       </Typography.Title>
       <Form<FieldType>
         layout="vertical"
@@ -122,8 +156,13 @@ const AddOrEditChannelConfig: React.FC = () => {
             style={{ width: 400 }}
             label="Channels"
             name="channelIds"
-            tooltip="Helo"
-            rules={[{ required: true }]}
+            tooltip="Select the channels you would like this configuration to apply to"
+            rules={[{ required: !useAllChannels }]}
+            initialValue={
+              channelConfig?.channelIds !== "*"
+                ? channelConfig?.channelIds
+                : undefined
+            }
           >
             <Select
               mode="multiple"
@@ -137,9 +176,109 @@ const AddOrEditChannelConfig: React.FC = () => {
           <Form.Item<FieldType>
             label="Use all channels?"
             name="useAllChannels"
-            rules={[{ required: true }]}
+            initialValue={channelConfig?.channelIds === "*"}
           >
             <Switch disabled={useAllChannelsAvailable} />
+          </Form.Item>
+        </Flex>
+        <Typography.Title level={4}>{"Output settings"}</Typography.Title>
+        <Flex gap={40} align="center">
+          <Form.Item<FieldType>
+            style={{ width: 400 }}
+            label="Length (s)"
+            name="length"
+            tooltip="Length in seconds of bumper content to generate"
+            rules={[{ required: !fitLengthToGap }]}
+            initialValue={
+              channelConfig?.length !== "*" ? channelConfig?.length : undefined
+            }
+          >
+            <InputNumber disabled={fitLengthToGap} />
+          </Form.Item>
+          <Typography.Paragraph>OR</Typography.Paragraph>
+          <Form.Item<FieldType>
+            label="Fill available gap"
+            name="fitLengthToGap"
+            tooltip=""
+            initialValue={channelConfig?.length === "*"}
+          >
+            <Switch />
+          </Form.Item>
+        </Flex>
+        <Flex gap={20} align="left">
+          <Form.Item<FieldType>
+            style={{}}
+            label="Width"
+            name="width"
+            tooltip="Width in px of output video"
+            rules={[{ required: true }]}
+            initialValue={channelConfig?.resolution.width}
+          >
+            <InputNumber placeholder="1920"></InputNumber>
+          </Form.Item>
+          <Form.Item<FieldType>
+            style={{}}
+            label="Height"
+            name="height"
+            tooltip="Height in px of output video"
+            rules={[{ required: true }]}
+            initialValue={channelConfig?.resolution.height}
+          >
+            <InputNumber placeholder="1080"></InputNumber>
+          </Form.Item>
+        </Flex>
+        <Form.Item<FieldType>
+          style={{ width: 400 }}
+          label="Template"
+          name="template"
+          tooltip="The template to use when generating bumper for these channel(s)"
+          rules={[{ required: true }]}
+          initialValue={channelConfig?.template}
+        >
+          <Select
+            placeholder="Select a option and change input text above"
+            allowClear
+          >
+            {cache.templates.map((template) => (
+              <Select.Option value={template.name}>
+                {template.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Flex gap={40} align="center">
+          <Form.Item<FieldType>
+            style={{ width: 400 }}
+            label="Background Content"
+            name="backgroundContent"
+            tooltip="Select the background content you would like to use. If choosing multiple, it will be chosen at random."
+            rules={[{ required: !useAllBackgroundContent }]}
+            initialValue={
+              channelConfig?.backgroundContent !== "*"
+                ? channelConfig?.backgroundContent
+                : undefined
+            }
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              placeholder="Select background content"
+              disabled={useAllBackgroundContent}
+            >
+              {cache.backgroundContent.map((backgroundContent) => (
+                <Select.Option value={backgroundContent.relativePath}>
+                  {backgroundContent.relativePath}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Typography.Paragraph>OR</Typography.Paragraph>
+          <Form.Item<FieldType>
+            label="Use all background content?"
+            name="useAllBackgroundContent"
+            initialValue={channelConfig?.backgroundContent === "*"}
+          >
+            <Switch />
           </Form.Item>
         </Flex>
         <Form.Item>
@@ -148,10 +287,7 @@ const AddOrEditChannelConfig: React.FC = () => {
               type="primary"
               htmlType="submit"
               disabled={!isTouched}
-              loading={
-                false
-                // backgroundContentIsCreating || backgroundContentIsUpdating
-              }
+              loading={channelConfigIsCreating || channelConfigIsUpdating}
             >
               Save
             </Button>

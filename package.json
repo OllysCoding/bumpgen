@@ -10,7 +10,8 @@
     "packages/example-plugin"
   ],
   "scripts": {
-    "dev": "npm run build --workspaces && npm run dev --workspace apps/backend"
+    "dev:frontend": "npm run dev --workspace apps/frontend",
+    "dev:backend": "npm run build --workspaces && npm run dev --workspace apps/backend"
   },
   "keywords": [],
   "author": "",

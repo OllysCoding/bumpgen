@@ -214,7 +214,7 @@ export class AppConfigService implements BumpgenService {
     configsToCheckAgainst: ChannelConfig[],
   ): Result<undefined> => {
     if (channelConfig.channelIds === "*") {
-      if (configsToCheckAgainst.every((c) => c.channelIds !== "*")) {
+      if (configsToCheckAgainst.some((c) => c.channelIds === "*")) {
         return failure('Only one channel config can exist with key "*"');
       }
     } else {
@@ -222,7 +222,7 @@ export class AppConfigService implements BumpgenService {
         return (
           configsToCheckAgainst.findIndex((c) =>
             Array.isArray(c.channelIds) ? c.channelIds.includes(id) : false,
-          ) !== 0
+          ) !== -1
         );
       });
       if (overlap.length) {
@@ -259,7 +259,7 @@ export class AppConfigService implements BumpgenService {
     }
 
     const configsToCheckAgainst = this.config.channels
-      .filter((_, i) => i === index)
+      .filter((_, i) => i !== index)
       .filter(isNotUndefined);
     const isValid = this.checkChannelConfigValid(
       channelConfig,

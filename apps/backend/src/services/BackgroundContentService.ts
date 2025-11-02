@@ -93,6 +93,7 @@ export class BackgroundContentService implements BumpgenService {
       this._files = filesWithConfigs;
       return success(undefined);
     } catch (err) {
+      logError("Failed to look up background content, err");
       return failure("Failed to look up background content", err);
     }
   };
